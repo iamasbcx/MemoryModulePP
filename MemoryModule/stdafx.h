@@ -2,8 +2,7 @@
 
 #ifndef WIN32_NO_STATUS
 #define WIN32_NO_STATUS
-#include "phnt/phnt_windows.h"
-#include "phnt/phnt.h"
+#include "nt.h"
 #undef WIN32_NO_STATUS
 #include <ntstatus.h>
 #endif
