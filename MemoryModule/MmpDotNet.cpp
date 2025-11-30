@@ -13,7 +13,7 @@ BOOL MmpIsMemoryModuleFileName(
     _Out_opt_ PLDR_DATA_TABLE_ENTRY *LdrEntry) {
 
     __try {
-        if (LdrEntry)*LdrEntry = nullptr;
+        if (LdrEntry)*LdrEntry = NULL;
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {
         return FALSE;
@@ -66,7 +66,7 @@ VOID MmpInsertHandleEntry(
 
 PMMP_FAKE_HANDLE_LIST_ENTRY MmpFindHandleEntry(HANDLE hObject) {
 
-    PMMP_FAKE_HANDLE_LIST_ENTRY result = nullptr;
+    PMMP_FAKE_HANDLE_LIST_ENTRY result = NULL;
     EnterCriticalSection(&MmpGlobalDataPtr->MmpDotNet->MmpFakeHandleListLock);
 
     for (auto entry = MmpGlobalDataPtr->MmpDotNet->MmpFakeHandleListHead.Flink; entry != &MmpGlobalDataPtr->MmpDotNet->MmpFakeHandleListHead; entry = entry->Flink) {
@@ -101,7 +101,7 @@ HANDLE WINAPI HookCreateFileW(
 
     PLDR_DATA_TABLE_ENTRY entry;
     if (MmpIsMemoryModuleFileName(lpFileName, &entry)) {
-        HANDLE hEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+        HANDLE hEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
 
         MmpInsertHandleEntry(hEvent, entry);
         return hEvent;
@@ -226,7 +226,7 @@ HANDLE WINAPI HookCreateFileMappingW(
 
     auto iter = MmpFindHandleEntry(hFile);
     if (iter) {
-        HANDLE hEvent = CreateEventW(nullptr, TRUE, FALSE, nullptr);
+        HANDLE hEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
         
         MmpInsertHandleEntry(hEvent, iter->value, !!(flProtect & SEC_IMAGE));
         return hEvent;
@@ -252,7 +252,7 @@ LPVOID WINAPI HookMapViewOfFileEx(
 
     auto iter = MmpFindHandleEntry(hFileMappingObject);
     if (iter) {
-        HMEMORYMODULE hModule = nullptr;
+        HMEMORYMODULE hModule = NULL;
         auto entry = (PLDR_DATA_TABLE_ENTRY)iter->value;
         auto pModule = MapMemoryModuleHandle((HMEMORYMODULE)entry->DllBase);
         if (pModule) {
@@ -291,7 +291,7 @@ LPVOID WINAPI HookMapViewOfFile(
         dwFileOffsetHigh,
         dwFileOffsetLow,
         dwNumberOfBytesToMap,
-        nullptr
+        NULL
     );
 
 }
@@ -329,7 +329,7 @@ HRESULT WINAPI HookGetFileVersion(
         CHAR VersionString[ANYSIZE_ARRAY];
     }COR20_METADATA, * PCOR20_METADATA;
 
-    PLDR_DATA_TABLE_ENTRY entry = nullptr;
+    PLDR_DATA_TABLE_ENTRY entry = NULL;
 
     if (MmpIsMemoryModuleFileName(szFilename, &entry)) {
 

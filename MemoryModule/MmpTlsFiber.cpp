@@ -78,7 +78,7 @@ DWORD WINAPI MmpReleasePostponedTlsWorker(PVOID) {
 
 DWORD WINAPI MmpReleasePostponedTlsWorker_Wrap(PVOID) {
 	__try {
-		return MmpReleasePostponedTlsWorker(nullptr);
+		return MmpReleasePostponedTlsWorker(NULL);
 	}
 	__except (EXCEPTION_EXECUTE_HANDLER) {
 		return 0;
@@ -123,7 +123,7 @@ VOID OnExit() {
 
 	MmpPostponedTlsList->~vector();
 	HeapFree(RtlProcessHeap(), 0, MmpPostponedTlsList);
-	MmpPostponedTlsList = nullptr;
+	MmpPostponedTlsList = NULL;
 
 	CloseHandle(MmpPostponedTlsEvent);
 
@@ -132,10 +132,10 @@ VOID OnExit() {
 
 VOID MmpTlsFiberInitialize() {
 	InitializeCriticalSection(&MmpPostponedTlsLock);
-	MmpPostponedTlsEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	MmpPostponedTlsEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	MmpPostponedTlsList = new(HeapAlloc(GetProcessHeap(), 0, sizeof(std::vector<MMP_POSTPONED_TLS>))) std::vector<MMP_POSTPONED_TLS>();
 	
 	atexit(OnExit);
 
-	CreateThread(nullptr, 0, MmpReleasePostponedTlsWorker_Wrap, nullptr, 0, nullptr);
+	CreateThread(NULL, 0, MmpReleasePostponedTlsWorker_Wrap, NULL, 0, NULL);
 }

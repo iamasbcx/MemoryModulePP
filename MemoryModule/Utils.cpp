@@ -43,7 +43,7 @@ NTSTATUS NTAPI RtlResolveDllNameUnicodeString(
 			swprintf_s(BaseDllName->Buffer, length, extend ? L"%s.dll" : L"%s", DllName);
 		}
 		else {
-			DllName = nullptr;
+			DllName = NULL;
 
 			BaseDllName->MaximumLength = (16 + 4 + 1) * sizeof(WCHAR); //hex(ULONG64) + ".dll" + '\0'
 			BaseDllName->Length = BaseDllName->MaximumLength - sizeof(WCHAR);
@@ -125,7 +125,7 @@ BOOL NTAPI LdrpExecuteTLS(PMEMORYMODULE module) {
 	callback = (PIMAGE_TLS_CALLBACK*)tls->AddressOfCallBacks;
 	if (callback) {
 		while (*callback) {
-			(*callback)((LPVOID)codeBase, DLL_PROCESS_ATTACH, nullptr);
+			(*callback)((LPVOID)codeBase, DLL_PROCESS_ATTACH, NULL);
 			callback++;
 		}
 	}
@@ -188,7 +188,7 @@ NTSTATUS NTAPI RtlFindMemoryBlockFromModuleSection(
 		//
 
 		if (!SearchContext->SearchPattern || !SearchContext->PatternSize) {
-			SearchContext->Result = nullptr;
+			SearchContext->Result = NULL;
 			SearchContext->MemoryBlockSize = 0;
 
 			status = STATUS_INVALID_PARAMETER;
@@ -206,7 +206,7 @@ NTSTATUS NTAPI RtlFindMemoryBlockFromModuleSection(
 			//
 
 			PIMAGE_NT_HEADERS headers = RtlImageNtHeader(ModuleHandle);
-			PIMAGE_SECTION_HEADER section = nullptr;
+			PIMAGE_SECTION_HEADER section = NULL;
 
 			if (headers) {
 				section = IMAGE_FIRST_SECTION(headers);
@@ -221,7 +221,7 @@ NTSTATUS NTAPI RtlFindMemoryBlockFromModuleSection(
 				}
 
 				if (!SearchContext->Result || !SearchContext->MemoryBlockSize || SearchContext->MemoryBlockSize < SearchContext->PatternSize) {
-					SearchContext->Result = nullptr;
+					SearchContext->Result = NULL;
 					SearchContext->MemoryBlockSize = 0;
 					status = STATUS_NOT_FOUND;
 					__leave;
@@ -251,7 +251,7 @@ NTSTATUS NTAPI RtlFindMemoryBlockFromModuleSection(
 		// if the search fails, clear the output parameters
 		//
 
-		SearchContext->Result = nullptr;
+		SearchContext->Result = NULL;
 		SearchContext->MemoryBlockSize = 0;
 		status = STATUS_NOT_FOUND;
 	}
@@ -306,7 +306,7 @@ BOOLEAN NTAPI RtlIsValidImageBuffer(
 			PIMAGE_NT_HEADERS nt;
 		}headers;
 		headers.nt = RtlImageNtHeader(Buffer);
-		PIMAGE_SECTION_HEADER sections = nullptr;
+		PIMAGE_SECTION_HEADER sections = NULL;
 		size_t SizeofImage = 0;
 		DWORD CheckSum = 0;
 

@@ -142,7 +142,7 @@ static VOID RtlpRemoveInvertedFunctionTable(
 }
 
 static NTSTATUS RtlProtectMrdata(_In_ ULONG Protect) {
-	static PVOID MrdataBase = nullptr;
+	static PVOID MrdataBase = NULL;
 	static SIZE_T size = 0;
 	NTSTATUS status;
 	PVOID tmp;
@@ -151,7 +151,7 @@ static NTSTATUS RtlProtectMrdata(_In_ ULONG Protect) {
 
 	if (!MrdataBase) {
 		MEMORY_BASIC_INFORMATION mbi{};
-		status = NtQueryVirtualMemory(GetCurrentProcess(), MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable, MemoryBasicInformation, &mbi, sizeof(mbi), nullptr);
+		status = NtQueryVirtualMemory(GetCurrentProcess(), MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable, MemoryBasicInformation, &mbi, sizeof(mbi), NULL);
 		if (!NT_SUCCESS(status))return status;
 		MrdataBase = mbi.BaseAddress;
 		size = mbi.RegionSize;

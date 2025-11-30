@@ -8,7 +8,7 @@ static PVOID LdrpReleaseTlsEntry;
 
 static NTSTATUS NTAPI RtlFindLdrpHandleTlsDataOld() {
 	NTSTATUS status = STATUS_SUCCESS;
-	LPCVOID Feature = nullptr;
+	LPCVOID Feature = NULL;
 	BYTE Size = 0;
 	WORD OffsetOfFunctionBegin = 0;
 
@@ -81,10 +81,10 @@ static NTSTATUS NTAPI RtlFindLdrpHandleTlsData10() {
 		return STATUS_NOT_SUPPORTED;
 	LPBYTE StringOffset = SearchContext.Result;
 
-	SearchContext.Result = nullptr;
+	SearchContext.Result = NULL;
 	SearchContext.PatternSize = 3;
 	SearchContext.SearchPattern = LPBYTE("\x48\x8D\x15");
-	LPBYTE ExceptionBlock = nullptr;
+	LPBYTE ExceptionBlock = NULL;
 
 	// Search for lea rdx,[rip+0x????]
 	// ???? is the relative offset from RIP to LdrpHandleTls string literal
@@ -113,7 +113,7 @@ static NTSTATUS NTAPI RtlFindLdrpHandleTlsData10() {
 	Converter ExceptionBlockAddress{}; // { .Dword = DWORD(ExceptionBlock - LPBYTE(DllBase)) };
 	ExceptionBlockAddress.Dword = DWORD(ExceptionBlock - LPBYTE(DllBase));
 
-	SearchContext.Result = nullptr;
+	SearchContext.Result = NULL;
 	SearchContext.PatternSize = 4;
 	SearchContext.SearchPattern = ExceptionBlockAddress.Bytes;
 	if (!NT_SUCCESS(RtlFindMemoryBlockFromModuleSection(HMODULE(DllBase), ".rdata", &SearchContext)))
@@ -151,7 +151,7 @@ static NTSTATUS NTAPI RtlFindLdrpHandleTlsData() {
 
 static NTSTATUS NTAPI RtlFindLdrpReleaseTlsEntry() {
 	NTSTATUS status = STATUS_SUCCESS;
-	LPCVOID Feature = nullptr;
+	LPCVOID Feature = NULL;
 	BYTE Size = 0;
 	WORD OffsetOfFunctionBegin = 0;
 
@@ -183,8 +183,8 @@ BOOL NTAPI MmpTlsInitialize() {
 	if (!NT_SUCCESS(RtlFindLdrpHandleTlsData()) ||
 		!NT_SUCCESS(RtlFindLdrpReleaseTlsEntry())) {
 
-		LdrpHandleTlsData = nullptr;
-		LdrpReleaseTlsEntry = nullptr;
+		LdrpHandleTlsData = NULL;
+		LdrpReleaseTlsEntry = NULL;
 
 		MmpGlobalDataPtr->MmpFeatures &= ~MEMORY_FEATURE_LDRP_HANDLE_TLS_DATA;
 		return FALSE;
@@ -211,7 +211,7 @@ NTSTATUS NTAPI MmpReleaseTlsEntry(_In_ PLDR_DATA_TABLE_ENTRY lpModuleEntry) {
 	fp.ptr = LdrpReleaseTlsEntry;
 
 	if (fp.ptr) {
-		return stdcall ? fp.stdcall(lpModuleEntry, nullptr) : fp.thiscall(lpModuleEntry, nullptr);
+		return stdcall ? fp.stdcall(lpModuleEntry, NULL) : fp.thiscall(lpModuleEntry, NULL);
 	}
 	else {
 		return STATUS_NOT_SUPPORTED;
