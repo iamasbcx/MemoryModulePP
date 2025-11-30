@@ -13,8 +13,9 @@
 // This header file provides basic NT types not included in Win32. If you have included winnt.h
 // (perhaps indirectly), you must use this file instead of ntdef.h.
 
-// VS2010 compatibility - SAL annotations and NT API macros
+// VS2010 and earlier compatibility - SAL annotations and NT API macros
 // VS2010 = _MSC_VER 1600, VS2012 = 1700
+// This section provides compatibility for VS2010 and earlier versions
 
 // NTSYSCALLAPI and NTAPI definitions for VS2010 compatibility
 #ifndef NTSYSCALLAPI
@@ -26,7 +27,7 @@
 #endif
 
 // SAL annotation compatibility for VS2010 and earlier
-#if defined(_MSC_VER) && _MSC_VER < 1700
+#if _MSC_VER < 1700
 
 #ifndef _Return_type_success_
 #define _Return_type_success_(expr)
