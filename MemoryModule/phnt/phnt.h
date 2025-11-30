@@ -83,7 +83,7 @@ extern "C" {
 #include "ntpsapi.h"
 
 #if (PHNT_MODE != PHNT_MODE_KERNEL)
-#include "cfg.h"
+//#include "cfg.h" // Not available in this distribution
 #include "ntdbg.h"
 #include "ntioapi.h"
 #include "ntlpcapi.h"
@@ -103,7 +103,7 @@ extern "C" {
 
 #include "ntwow64.h"
 
-#include "ntlsa.h"
+//#include "ntlsa.h" // Not available in this distribution
 #include "ntsam.h"
 
 #include "ntmisc.h"
