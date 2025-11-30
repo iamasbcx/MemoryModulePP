@@ -11,8 +11,8 @@ HMODULE MmpLoadLibraryA(
 	_In_ LPCSTR lpModuleName,
 	_Out_ PMM_IAT_RESOLVER* lpModuleResolver) {
 
-	HMODULE hModule = nullptr;
-	PMM_IAT_RESOLVER resolver = nullptr;
+	HMODULE hModule = NULL;
+	PMM_IAT_RESOLVER resolver = NULL;
 
 	EnterCriticalSection(&MmpGlobalDataPtr->MmpIat->MmpIatResolverListLock);
 
@@ -42,7 +42,7 @@ VOID MemoryFreeImportTable(_In_ PMEMORYMODULE hMemoryModule) {
 
 	PMMP_IAT_HANDLE list = (PMMP_IAT_HANDLE)hMemoryModule->hModulesList;
 	for (DWORD i = 0; i < hMemoryModule->dwModulesCount; ++i) {
-		auto entry = list[i];
+		MMP_IAT_HANDLE entry = list[i];
 		entry.lpResolver->FreeLibraryProv(entry.hModule);
 		--entry.lpResolver->ReferenceCount;
 	}
@@ -51,7 +51,7 @@ VOID MemoryFreeImportTable(_In_ PMEMORYMODULE hMemoryModule) {
 
 
 	RtlFreeHeap(NtCurrentPeb()->ProcessHeap, 0, hMemoryModule->hModulesList);
-	hMemoryModule->hModulesList = nullptr;
+	hMemoryModule->hModulesList = NULL;
 	hMemoryModule->dwModulesCount = 0;
 }
 
@@ -60,13 +60,13 @@ NTSTATUS MemoryResolveImportTable(
 	_In_ PIMAGE_NT_HEADERS lpNtHeaders,
 	_In_ PMEMORYMODULE hMemoryModule) {
 	NTSTATUS status = STATUS_SUCCESS;
-	PIMAGE_IMPORT_DESCRIPTOR importDesc = nullptr;
+	PIMAGE_IMPORT_DESCRIPTOR importDesc = NULL;
 	DWORD count = 0;
 
 	do {
 		__try {
 			PIMAGE_DATA_DIRECTORY dir = &lpNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
-			PIMAGE_IMPORT_DESCRIPTOR iat = nullptr;
+			PIMAGE_IMPORT_DESCRIPTOR iat = NULL;
 
 			if (dir && dir->Size) {
 				iat = importDesc = PIMAGE_IMPORT_DESCRIPTOR(lpNtHeaders->OptionalHeader.ImageBase + dir->VirtualAddress);

@@ -52,21 +52,21 @@ NTSTATUS NTAPI LdrLoadDllMemoryExW(
 	_In_ size_t BufferSize,
 	_In_opt_ LPCWSTR DllName,
 	_In_opt_ LPCWSTR DllFullName) {
-	PMEMORYMODULE module = nullptr;
+	PMEMORYMODULE module = NULL;
 	NTSTATUS status = STATUS_SUCCESS;
-	PLDR_DATA_TABLE_ENTRY ModuleEntry = nullptr;
-	PIMAGE_NT_HEADERS headers = nullptr;
+	PLDR_DATA_TABLE_ENTRY ModuleEntry = NULL;
+	PIMAGE_NT_HEADERS headers = NULL;
 
 	if (BufferSize)return STATUS_INVALID_PARAMETER_5;
 	__try {
-		*BaseAddress = nullptr;
-		if (LdrEntry)*LdrEntry = nullptr;
+		*BaseAddress = NULL;
+		if (LdrEntry)*LdrEntry = NULL;
 
 		if (!RtlIsValidImageBuffer(BufferAddress, &BufferSize) && !(dwFlags & LOAD_FLAGS_PASS_IMAGE_CHECK)) {
 			status = STATUS_INVALID_IMAGE_FORMAT;
 		}
 
-		if (MmpGlobalDataPtr == nullptr) {
+		if (MmpGlobalDataPtr == NULL) {
 			status = STATUS_INVALID_PARAMETER;
 		}
 	}
@@ -77,14 +77,14 @@ NTSTATUS NTAPI LdrLoadDllMemoryExW(
 
 	if (dwFlags & LOAD_FLAGS_NOT_MAP_DLL) {
 		dwFlags &= LOAD_FLAGS_NOT_MAP_DLL;
-		DllName = DllFullName = nullptr;
+		DllName = DllFullName = NULL;
 	}
 	if (dwFlags & LOAD_FLAGS_USE_DLL_NAME && (!DllName || !DllFullName))return STATUS_INVALID_PARAMETER_3;
 
 	if (DllName) {
 		int length = (int)wcslen(DllName);
 		PLIST_ENTRY ListHead = &NtCurrentPeb()->Ldr->InLoadOrderModuleList, ListEntry = ListHead->Flink;
-		PIMAGE_NT_HEADERS h1 = RtlImageNtHeader(BufferAddress), h2 = nullptr;
+		PIMAGE_NT_HEADERS h1 = RtlImageNtHeader(BufferAddress), h2 = NULL;
 		if (!h1)return STATUS_INVALID_IMAGE_FORMAT;
 		
 		while (ListEntry != ListHead) {
@@ -94,7 +94,7 @@ NTSTATUS NTAPI LdrLoadDllMemoryExW(
 			/* Check if it's being unloaded */
 			if (!CurEntry->InMemoryOrderLinks.Flink) continue;
 
-			auto dist = (CurEntry->BaseDllName.Length / sizeof(wchar_t)) - length;
+			int dist = (CurEntry->BaseDllName.Length / sizeof(wchar_t)) - length;
 			bool equal = false;
 			if (dist == 0 || dist == 4) {
 				equal = !_wcsnicmp(DllName, CurEntry->BaseDllName.Buffer, length);
@@ -215,7 +215,7 @@ NTSTATUS NTAPI LdrLoadDllMemoryExW(
 	}
 	else {
 		LdrUnloadDllMemory(*BaseAddress);
-		*BaseAddress = nullptr;
+		*BaseAddress = NULL;
 	}
 
 	return status;
@@ -236,7 +236,7 @@ NTSTATUS NTAPI LdrUnloadDllMemory(_In_ HMEMORYMODULE BaseAddress) {
 			break;
 		}
 
-		if (MmpGlobalDataPtr == nullptr) {
+		if (MmpGlobalDataPtr == NULL) {
 			status = STATUS_INVALID_PARAMETER;
 			break;
 		}

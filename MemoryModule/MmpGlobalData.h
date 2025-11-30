@@ -1,5 +1,27 @@
 #pragma once
 
+// Function pointer typedefs for VS2010 compatibility
+typedef NTSTATUS (NTAPI *PFN_NtSetInformationProcess)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG);
+typedef VOID (NTAPI *PFN_LdrShutdownThread)(VOID);
+typedef VOID (NTAPI *PRTL_USER_THREAD_START)(PTHREAD_START_ROUTINE, PVOID);
+
+typedef HANDLE (WINAPI *PFN_CreateFileW)(LPCWSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES, DWORD, DWORD, HANDLE);
+typedef BOOL (WINAPI *PFN_GetFileInformationByHandle)(HANDLE, LPBY_HANDLE_FILE_INFORMATION);
+typedef BOOL (WINAPI *PFN_GetFileAttributesExW)(LPCWSTR, GET_FILEEX_INFO_LEVELS, LPVOID);
+typedef DWORD (WINAPI *PFN_GetFileSize)(HANDLE, LPDWORD);
+typedef BOOL (WINAPI *PFN_GetFileSizeEx)(HANDLE, PLARGE_INTEGER);
+typedef HANDLE (WINAPI *PFN_CreateFileMappingW)(HANDLE, LPSECURITY_ATTRIBUTES, DWORD, DWORD, DWORD, LPCWSTR);
+typedef LPVOID (WINAPI *PFN_MapViewOfFileEx)(HANDLE, DWORD, DWORD, DWORD, SIZE_T, LPVOID);
+typedef LPVOID (WINAPI *PFN_MapViewOfFile)(HANDLE, DWORD, DWORD, DWORD, SIZE_T);
+typedef BOOL (WINAPI *PFN_UnmapViewOfFile)(LPCVOID);
+typedef BOOL (WINAPI *PFN_CloseHandle)(HANDLE);
+
+typedef NTSTATUS (NTAPI *PFN_LdrLoadDllMemoryExW)(HMEMORYMODULE*, PVOID*, DWORD, LPVOID, size_t, LPCWSTR, LPCWSTR);
+typedef NTSTATUS (NTAPI *PFN_LdrUnloadDllMemory)(HMEMORYMODULE);
+typedef VOID (NTAPI *PFN_LdrUnloadDllMemoryAndExitThread)(HMEMORYMODULE, DWORD);
+typedef NTSTATUS (NTAPI *PFN_MmpHandleTlsData)(PLDR_DATA_TABLE_ENTRY);
+typedef NTSTATUS (NTAPI *PFN_MmpReleaseTlsEntry)(PLDR_DATA_TABLE_ENTRY);
+
 //BaseAddressIndex.cpp
 typedef struct _MMP_BASE_ADDRESS_INDEX_DATA {
 	PRTL_RB_TREE LdrpModuleBaseAddressIndex;
@@ -31,9 +53,9 @@ typedef struct _MMP_TLS_DATA {
 	struct {
 		PVOID HookReserved1;
 		PVOID HookReserved2;
-		decltype(&NtSetInformationProcess) OriginNtSetInformationProcess;
-		decltype(&LdrShutdownThread) OriginLdrShutdownThread;
-		decltype(&RtlUserThreadStart) OriginRtlUserThreadStart;
+		PFN_NtSetInformationProcess OriginNtSetInformationProcess;
+		PFN_LdrShutdownThread OriginLdrShutdownThread;
+		PRTL_USER_THREAD_START OriginRtlUserThreadStart;
 	}Hooks;
 }MMP_TLS_DATA, * PMMP_TLS_DATA;
 
@@ -48,28 +70,28 @@ typedef struct _MMP_DOT_NET_DATA {
 	BOOLEAN Initialized;
 
 	struct {
-		decltype(&CreateFileW) OriginCreateFileW;
-		decltype(&GetFileInformationByHandle) OriginGetFileInformationByHandle;
-		decltype(&GetFileAttributesExW) OriginGetFileAttributesExW;
-		decltype(&GetFileSize) OriginGetFileSize;
-		decltype(&GetFileSizeEx) OriginGetFileSizeEx;
-		decltype(&CreateFileMappingW) OriginCreateFileMappingW;
-		decltype(&MapViewOfFileEx) OriginMapViewOfFileEx;
-		decltype(&MapViewOfFile) OriginMapViewOfFile;
-		decltype(&UnmapViewOfFile)OriginUnmapViewOfFile;
-		decltype(&CloseHandle)OriginCloseHandle;
+		PFN_CreateFileW OriginCreateFileW;
+		PFN_GetFileInformationByHandle OriginGetFileInformationByHandle;
+		PFN_GetFileAttributesExW OriginGetFileAttributesExW;
+		PFN_GetFileSize OriginGetFileSize;
+		PFN_GetFileSizeEx OriginGetFileSizeEx;
+		PFN_CreateFileMappingW OriginCreateFileMappingW;
+		PFN_MapViewOfFileEx OriginMapViewOfFileEx;
+		PFN_MapViewOfFile OriginMapViewOfFile;
+		PFN_UnmapViewOfFile OriginUnmapViewOfFile;
+		PFN_CloseHandle OriginCloseHandle;
 		GetFileVersion_T OriginGetFileVersion1;
 		GetFileVersion_T OriginGetFileVersion2;
 	}Hooks;
 }MMP_DOT_NET_DATA, * PMMP_DOT_NET_DATA;
 
 typedef struct _MMP_FUNCTIONS {
-	decltype(&LdrLoadDllMemoryExW) _LdrLoadDllMemoryExW;
-	decltype(&LdrUnloadDllMemory) _LdrUnloadDllMemory;
-	decltype(&LdrUnloadDllMemoryAndExitThread) _LdrUnloadDllMemoryAndExitThread;
+	PFN_LdrLoadDllMemoryExW _LdrLoadDllMemoryExW;
+	PFN_LdrUnloadDllMemory _LdrUnloadDllMemory;
+	PFN_LdrUnloadDllMemoryAndExitThread _LdrUnloadDllMemoryAndExitThread;
 
-	decltype(&MmpHandleTlsData) _MmpHandleTlsData;
-	decltype(&MmpReleaseTlsEntry) _MmpReleaseTlsEntry;
+	PFN_MmpHandleTlsData _MmpHandleTlsData;
+	PFN_MmpReleaseTlsEntry _MmpReleaseTlsEntry;
 }MMP_FUNCTIONS, * PMMP_FUNCTIONS;
 
 //ImportTable.cpp

@@ -10,22 +10,23 @@ PMMP_GLOBAL_DATA MmpGlobalDataPtr;
 #endif
 
 PRTL_RB_TREE FindLdrpModuleBaseAddressIndex() {
-    PRTL_RB_TREE LdrpModuleBaseAddressIndex = nullptr;
-    PLDR_DATA_TABLE_ENTRY_WIN10 nt10 = decltype(nt10)(MmpGlobalDataPtr->MmpBaseAddressIndex->NtdllLdrEntry);
-    PRTL_BALANCED_NODE node = nullptr;
-    if (!nt10 || !RtlIsWindowsVersionOrGreater(6, 2, 0))return nullptr;
+    PRTL_RB_TREE LdrpModuleBaseAddressIndex = NULL;
+    PLDR_DATA_TABLE_ENTRY_WIN10 nt10 = (PLDR_DATA_TABLE_ENTRY_WIN10)(MmpGlobalDataPtr->MmpBaseAddressIndex->NtdllLdrEntry);
+    PRTL_BALANCED_NODE node = NULL;
+    SEARCH_CONTEXT SearchContext;
+    if (!nt10 || !RtlIsWindowsVersionOrGreater(6, 2, 0))return NULL;
     node = &nt10->BaseAddressIndexNode;
-    while (node->ParentValue & (~7)) node = decltype(node)(node->ParentValue & (~7));
+    while (node->ParentValue & (~7)) node = (PRTL_BALANCED_NODE)(node->ParentValue & (~7));
 
     if (!node->Red) {
         BYTE count = 0;
-        PRTL_RB_TREE tmp = nullptr;
-        SEARCH_CONTEXT SearchContext{};
+        PRTL_RB_TREE tmp = NULL;
+        memset(&SearchContext, 0, sizeof(SearchContext));
         SearchContext.SearchPattern = (LPBYTE)&node;
         SearchContext.PatternSize = sizeof(size_t);
         while (NT_SUCCESS(RtlFindMemoryBlockFromModuleSection((HMODULE)nt10->DllBase, ".data", &SearchContext))) {
-            if (count++)return nullptr;
-            tmp = (decltype(tmp))SearchContext.Result;
+            if (count++)return NULL;
+            tmp = (PRTL_RB_TREE)SearchContext.Result;
         }
         if (count && tmp && tmp->Root && tmp->Min) {
             LdrpModuleBaseAddressIndex = tmp;
@@ -40,7 +41,7 @@ static __forceinline bool IsModuleUnloaded(PLDR_DATA_TABLE_ENTRY entry) {
 		return PLDR_DATA_TABLE_ENTRY_WIN8(entry)->DdagNode->State == LdrModulesUnloaded;
 	}
 	else {
-		return entry->DllBase == nullptr;
+		return entry->DllBase == NULL;
 	}
 }
 
@@ -58,16 +59,21 @@ PVOID FindLdrpInvertedFunctionTable32() {
 	//		NextEntrySEHandlerTableEncoded				+0x1c	++++++++(Win10) ????????(Win7)
 	//	_RTL_INVERTED_FUNCTION_TABLE_ENTRY[1] ...		...
 	// ......
-	HMODULE hModule = nullptr, hNtdll = GetModuleHandleW(L"ntdll.dll");
-	PIMAGE_NT_HEADERS NtdllHeaders = RtlImageNtHeader(hNtdll), ModuleHeaders = nullptr;
-	_RTL_INVERTED_FUNCTION_TABLE_ENTRY_WIN7_32 entry{};
+	HMODULE hModule = NULL, hNtdll = GetModuleHandleW(L"ntdll.dll");
+	PIMAGE_NT_HEADERS NtdllHeaders = RtlImageNtHeader(hNtdll), ModuleHeaders = NULL;
+	_RTL_INVERTED_FUNCTION_TABLE_ENTRY_WIN7_32 entry;
 	LPCSTR lpSectionName = ".data";
-	SEARCH_CONTEXT SearchContext{ SearchContext.SearchPattern = (LPBYTE)&entry,SearchContext.PatternSize = sizeof(entry) };
+	SEARCH_CONTEXT SearchContext;
 	PLIST_ENTRY ListHead = &NtCurrentPeb()->Ldr->InMemoryOrderModuleList,
 		ListEntry = ListHead->Flink;
-	PLDR_DATA_TABLE_ENTRY CurEntry = nullptr;
+	PLDR_DATA_TABLE_ENTRY CurEntry = NULL;
 	DWORD SEHTable, SEHCount;
 	BYTE Offset = 0x20;	//sizeof(_RTL_INVERTED_FUNCTION_TABLE_ENTRY)*2
+
+	memset(&entry, 0, sizeof(entry));
+	memset(&SearchContext, 0, sizeof(SearchContext));
+	SearchContext.SearchPattern = (LPBYTE)&entry;
+	SearchContext.PatternSize = sizeof(entry);
 
 	if (RtlIsWindowsVersionOrGreater(6, 3, 0)) lpSectionName = ".mrdata";
 	else if (!RtlIsWindowsVersionOrGreater(6, 2, 0)) Offset = 0xC;
@@ -81,20 +87,23 @@ PVOID FindLdrpInvertedFunctionTable32() {
 		hModule = (HMODULE)(hModule ? min(hModule, CurEntry->DllBase) : CurEntry->DllBase);
 	}
 	ModuleHeaders = RtlImageNtHeader(hModule);
-	if (!hModule || !ModuleHeaders || !hNtdll || !NtdllHeaders)return nullptr;
+	if (!hModule || !ModuleHeaders || !hNtdll || !NtdllHeaders)return NULL;
 
 	RtlCaptureImageExceptionValues(hModule, &SEHTable, &SEHCount);
-	entry = { RtlEncodeSystemPointer((PVOID)SEHTable),(DWORD)hModule,ModuleHeaders->OptionalHeader.SizeOfImage,(PVOID)SEHCount };
+	entry.NextEntrySEHandlerTableEncoded = RtlEncodeSystemPointer((PVOID)SEHTable);
+	entry.ImageBase = (DWORD)hModule;
+	entry.ImageSize = ModuleHeaders->OptionalHeader.SizeOfImage;
+	entry.SEHandlerCount = (PVOID)SEHCount;
 
 	while (NT_SUCCESS(RtlFindMemoryBlockFromModuleSection(hNtdll, lpSectionName, &SearchContext))) {
-		PRTL_INVERTED_FUNCTION_TABLE_WIN7_32 tab = decltype(tab)(SearchContext.Result - Offset);
+		PRTL_INVERTED_FUNCTION_TABLE_WIN7_32 tab = (PRTL_INVERTED_FUNCTION_TABLE_WIN7_32)(SearchContext.Result - Offset);
 
 		//Note: Same memory layout for RTL_INVERTED_FUNCTION_TABLE_ENTRY in Windows 10 x86 and x64.
 		if (RtlIsWindowsVersionOrGreater(6, 2, 0) && tab->MaxCount == 0x200 && !tab->NextEntrySEHandlerTableEncoded) return tab;
 		else if (tab->MaxCount == 0x200 && !tab->Overflow) return tab;
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 #define FindLdrpInvertedFunctionTable FindLdrpInvertedFunctionTable32
@@ -112,12 +121,17 @@ PVOID FindLdrpInvertedFunctionTable64() {
 	//		ExceptionDirectorySize						+0x24	++++++++
 	//	_RTL_INVERTED_FUNCTION_TABLE_ENTRY[1] ...		...
 	// ......
-	HMODULE hModule = nullptr, hNtdll = GetModuleHandleW(L"ntdll.dll");
-	PIMAGE_NT_HEADERS NtdllHeaders = RtlImageNtHeader(hNtdll), ModuleHeaders = nullptr;
-	_RTL_INVERTED_FUNCTION_TABLE_ENTRY_64 entry{};
+	HMODULE hModule = NULL, hNtdll = GetModuleHandleW(L"ntdll.dll");
+	PIMAGE_NT_HEADERS NtdllHeaders = RtlImageNtHeader(hNtdll), ModuleHeaders = NULL;
+	_RTL_INVERTED_FUNCTION_TABLE_ENTRY_64 entry;
 	LPCSTR lpSectionName = ".data";
-	PIMAGE_DATA_DIRECTORY dir = nullptr;
-	SEARCH_CONTEXT SearchContext{ SearchContext.SearchPattern = (LPBYTE)&entry,SearchContext.PatternSize = sizeof(entry) };
+	PIMAGE_DATA_DIRECTORY dir = NULL;
+	SEARCH_CONTEXT SearchContext;
+
+	memset(&entry, 0, sizeof(entry));
+	memset(&SearchContext, 0, sizeof(SearchContext));
+	SearchContext.SearchPattern = (LPBYTE)&entry;
+	SearchContext.PatternSize = sizeof(entry);
 
 	//Windows 8
 	if (RtlVerifyVersion(6, 2, 0, RTL_VERIFY_FLAGS_MAJOR_VERSION | RTL_VERIFY_FLAGS_MINOR_VERSION)) {
@@ -134,7 +148,7 @@ PVOID FindLdrpInvertedFunctionTable64() {
 	else {
 		PLIST_ENTRY ListHead = &NtCurrentPeb()->Ldr->InLoadOrderModuleList,
 			ListEntry = ListHead->Flink;
-		PLDR_DATA_TABLE_ENTRY CurEntry = nullptr;
+		PLDR_DATA_TABLE_ENTRY CurEntry = NULL;
 		while (ListEntry != ListHead) {
 			CurEntry = CONTAINING_RECORD(ListEntry, LDR_DATA_TABLE_ENTRY, InLoadOrderLinks);
 			ListEntry = ListEntry->Flink;
@@ -145,20 +159,20 @@ PVOID FindLdrpInvertedFunctionTable64() {
 		ModuleHeaders = RtlImageNtHeader(hModule);
 	}
 
-	if (!hModule || !ModuleHeaders || !hNtdll || !NtdllHeaders)return nullptr;
+	if (!hModule || !ModuleHeaders || !hNtdll || !NtdllHeaders)return NULL;
 	dir = &ModuleHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXCEPTION];
-	entry = {
-		dir->Size ? decltype(entry.ExceptionDirectory)((size_t)hModule + dir->VirtualAddress) : nullptr ,
-		(PVOID)hModule, ModuleHeaders->OptionalHeader.SizeOfImage,dir->Size
-	};
+	entry.ExceptionDirectory = dir->Size ? (PRUNTIME_FUNCTION)((size_t)hModule + dir->VirtualAddress) : NULL;
+	entry.ImageBase = (PVOID)hModule;
+	entry.ImageSize = ModuleHeaders->OptionalHeader.SizeOfImage;
+	entry.ExceptionDirectorySize = dir->Size;
 
 	while (NT_SUCCESS(RtlFindMemoryBlockFromModuleSection(hNtdll, lpSectionName, &SearchContext))) {
-		PRTL_INVERTED_FUNCTION_TABLE_64 tab = decltype(tab)(SearchContext.Result - 0x10);
+		PRTL_INVERTED_FUNCTION_TABLE_64 tab = (PRTL_INVERTED_FUNCTION_TABLE_64)(SearchContext.Result - 0x10);
 		if (RtlIsWindowsVersionOrGreater(6, 2, 0) && tab->MaxCount == 0x200 && !tab->Overflow) return tab;
 		else if (tab->MaxCount == 0x200 && !tab->Epoch) return tab;
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 #define FindLdrpInvertedFunctionTable FindLdrpInvertedFunctionTable64
@@ -204,13 +218,13 @@ PLIST_ENTRY FindLdrpHashTable() {
 		if (hashEntry->Flink != hashEntry && hashEntry->Flink->Flink == hashEntry) {
 			PLIST_ENTRY table = &hashEntry->Flink[-(LONG)LdrHashEntry(current->BaseDllName)];
 
-			return IsValidLdrpHashTable(table) ? table : nullptr;
+			return IsValidLdrpHashTable(table) ? table : NULL;
 		}
 
 		entry = entry->Flink;
 	}
 
-	return nullptr;
+	return NULL;
 }
 
 VOID InitializeWindowsVersion() {
@@ -331,11 +345,13 @@ NTSTATUS MmpAllocateGlobalData() {
 	OBJECT_ATTRIBUTES oa;
 	LARGE_INTEGER li;
 	WCHAR buffer[128];
-	HANDLE hSection = nullptr;
-	UNICODE_STRING us{};
+	HANDLE hSection = NULL;
+	UNICODE_STRING us;
 	PVOID BaseAddress = 0;
 	SIZE_T ViewSize = 0;
 	PTEB teb = NtCurrentTeb();
+
+	memset(&us, 0, sizeof(us));
 
 	if (NtCurrentPeb()->SessionId == 0) {
 		swprintf_s(
@@ -354,7 +370,7 @@ NTSTATUS MmpAllocateGlobalData() {
 	}
 
 	RtlInitUnicodeString(&us, buffer);
-	InitializeObjectAttributes(&oa, &us, 0, nullptr, nullptr);
+	InitializeObjectAttributes(&oa, &us, 0, NULL, NULL);
 
 	li.QuadPart = 0x1000;
 
@@ -365,7 +381,7 @@ NTSTATUS MmpAllocateGlobalData() {
 		&li,
 		PAGE_READWRITE,
 		SEC_COMMIT,
-		nullptr
+		NULL
 	);
 	if (NT_SUCCESS(status)) {
 		status = NtMapViewOfSection(
@@ -374,7 +390,7 @@ NTSTATUS MmpAllocateGlobalData() {
 			(PVOID*)&MmpGlobalDataPtr,
 			0,
 			0,
-			nullptr,
+			NULL,
 			&ViewSize,
 			ViewUnmap,
 			0,
@@ -400,7 +416,7 @@ NTSTATUS MmpAllocateGlobalData() {
 					&BaseAddress,
 					0,
 					0,
-					nullptr,
+					NULL,
 					&ViewSize,
 					ViewUnmap,
 					0,
@@ -510,7 +526,7 @@ NTSTATUS NTAPI MmInitialize() {
     NTSTATUS status;
 
 	PVOID cookie;
-	LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, nullptr, &cookie);
+	LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &cookie);
 
 	__try {
 		status = InitializeLockHeld();
@@ -549,18 +565,18 @@ NTSTATUS CleanupLockHeld() {
 	MmpCleanupDotNetHooks();
 
 	NtUnmapViewOfSection(NtCurrentProcess(), MmpGlobalDataPtr->BaseAddress);
-	MmpGlobalDataPtr = nullptr;
+	MmpGlobalDataPtr = NULL;
 	return STATUS_SUCCESS;
 }
 
 NTSTATUS NTAPI MmCleanup() {
 	NTSTATUS status;
 	PVOID cookie;
-	LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, nullptr, &cookie);
+	LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &cookie);
 
 	__try {
 
-		if (MmpGlobalDataPtr == nullptr) {
+		if (MmpGlobalDataPtr == NULL) {
 			status = STATUS_ACCESS_VIOLATION;
 			__leave;
 		}
@@ -580,14 +596,14 @@ extern "C" __declspec(dllexport) BOOL WINAPI ReflectiveMapDll(HMODULE hModule) {
 
 	headers->OptionalHeader.ImageBase = (SIZE_T)hModule;
 
-	NTSTATUS status = MmpInitializeStructure(0, nullptr, headers);
+	NTSTATUS status = MmpInitializeStructure(0, NULL, headers);
 	if (!NT_SUCCESS(status))return FALSE;
 
 	PMEMORYMODULE module = MapMemoryModuleHandle(hModule);
 	if (!module)return FALSE;
 
 	PLDR_DATA_TABLE_ENTRY ModuleEntry;
-	status = LdrMapDllMemory(hModule, 0, nullptr, nullptr, &ModuleEntry);
+	status = LdrMapDllMemory(hModule, 0, NULL, NULL, &ModuleEntry);
 	if (!NT_SUCCESS(status))return FALSE;
 
 	status = RtlInsertInvertedFunctionTable(hModule, headers->OptionalHeader.SizeOfImage);

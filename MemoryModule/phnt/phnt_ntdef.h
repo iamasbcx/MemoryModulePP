@@ -13,6 +13,63 @@
 // This header file provides basic NT types not included in Win32. If you have included winnt.h
 // (perhaps indirectly), you must use this file instead of ntdef.h.
 
+// VS2010 compatibility - SAL annotations
+#if _MSC_VER < 1600
+// Very old VS, shouldn't happen but define empty macros just in case
+#ifndef _Return_type_success_
+#define _Return_type_success_(expr)
+#endif
+#ifndef _Field_size_bytes_part_opt_
+#define _Field_size_bytes_part_opt_(size, count)
+#endif
+#ifndef _Field_size_bytes_part_
+#define _Field_size_bytes_part_(size, count)
+#endif
+#endif
+
+// VS2010 (1600) specific SAL compatibility
+#if _MSC_VER >= 1600 && _MSC_VER < 1700
+#ifndef _Return_type_success_
+#define _Return_type_success_(expr)
+#endif
+#ifndef _Field_size_bytes_part_opt_
+#define _Field_size_bytes_part_opt_(size, count)
+#endif
+#ifndef _Field_size_bytes_part_
+#define _Field_size_bytes_part_(size, count)
+#endif
+#ifndef _Pre_maybenull_
+#define _Pre_maybenull_
+#endif
+#ifndef _Pre_readable_size_
+#define _Pre_readable_size_(size)
+#endif
+#ifndef _Post_invalid_
+#define _Post_invalid_
+#endif
+#ifndef _Writable_bytes_
+#define _Writable_bytes_(size)
+#endif
+#ifndef _When_
+#define _When_(expr, annotes)
+#endif
+#ifndef _Notnull_
+#define _Notnull_
+#endif
+#ifndef _Frees_ptr_opt_
+#define _Frees_ptr_opt_
+#endif
+#ifndef _At_
+#define _At_(target, annotes)
+#endif
+#ifndef _Ret_maybenull_
+#define _Ret_maybenull_
+#endif
+#ifndef _Success_
+#define _Success_(expr)
+#endif
+#endif
+
 #ifndef NOTHING
 #define NOTHING
 #endif
