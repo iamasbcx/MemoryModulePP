@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include <3rdparty/Detours/detours.h>
+#include <detours.h>
 
 typedef struct _MMP_FAKE_HANDLE_LIST_ENTRY {
     LIST_ENTRY InMmpFakeHandleList;

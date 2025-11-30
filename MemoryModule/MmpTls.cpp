@@ -6,7 +6,7 @@
 
 #include <cassert>
 #include <algorithm>
-#include <3rdparty/Detours/detours.h>
+#include <detours.h>
 #include <set>
 
 

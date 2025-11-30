@@ -13,26 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\3rdparty">
-      <UniqueIdentifier>{8baeecde-ca9b-43da-b847-c24b02413572}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\3rdparty\Detours">
-      <UniqueIdentifier>{21335c89-8359-427a-a6c6-d621b31be2ce}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\3rdparty">
-      <UniqueIdentifier>{22e60119-4e33-49c4-81c4-b95ea98501e3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\3rdparty\Detours">
-      <UniqueIdentifier>{10bf9b0e-09d4-473b-a4bb-d7c4cecc65b4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\3rdparty\phnt">
+    <Filter Include="Header Files\phnt">
       <UniqueIdentifier>{e1243ce3-529c-401e-83a4-fe009cda27b1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\3rdparty\ReflectiveLoader">
-      <UniqueIdentifier>{3e49fb44-9cfb-4a48-b497-6fe396e1a258}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\3rdparty\ReflectiveLoader">
-      <UniqueIdentifier>{4bbbea53-468a-49af-9b66-b61471058da1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -50,36 +32,6 @@
     </ClCompile>
     <ClCompile Include="MmpTls.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\creatwth.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\detours.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\disasm.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\disolarm.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\disolarm64.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\disolia64.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\disolx64.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\disolx86.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\image.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
-    </ClCompile>
-    <ClCompile Include="..\3rdparty\Detours\modules.cpp">
-      <Filter>Source Files\3rdparty\Detours</Filter>
     </ClCompile>
     <ClCompile Include="MmpDotNet.cpp">
       <Filter>Source Files</Filter>
@@ -99,13 +51,43 @@
     <ClCompile Include="MmpLdrpTls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ReflectiveLoader.c">
-      <Filter>Source Files\3rdparty\ReflectiveLoader</Filter>
-    </ClCompile>
     <ClCompile Include="MmpTlsFiber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ImportTable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ReflectiveLoader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="creatwth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="detours.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="disasm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="disolarm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="disolarm64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="disolia64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="disolx64.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="disolx86.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="modules.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -125,12 +107,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\3rdparty\Detours\detours.h">
-      <Filter>Header Files\3rdparty\Detours</Filter>
-    </ClInclude>
-    <ClInclude Include="..\3rdparty\Detours\detver.h">
-      <Filter>Header Files\3rdparty\Detours</Filter>
-    </ClInclude>
     <ClInclude Include="MmpDotNet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -147,106 +123,100 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntbcd.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntdbg.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntexapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntgdi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntioapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntkeapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntldr.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntlpcapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntmisc.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntmmapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntnls.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntobapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntpebteb.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntpfapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntpnpapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntpoapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntpsapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntregapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntrtl.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntsam.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntseapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntsmss.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\nttmapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\nttp.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntwow64.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\ntxcapi.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\phnt.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\phnt_ntdef.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\phnt_windows.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\subprocesstag.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="..\3rdparty\phnt\include\winsta.h">
-      <Filter>Header Files\3rdparty\phnt</Filter>
+      <Filter>Header Files\phnt</Filter>
     </ClInclude>
     <ClInclude Include="MmpGlobalData.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ReflectiveLoader.h">
-      <Filter>Header Files\3rdparty\ReflectiveLoader</Filter>
-    </ClInclude>
-    <ClInclude Include="ReflectiveDLLInjection.h">
-      <Filter>Header Files\3rdparty\ReflectiveLoader</Filter>
     </ClInclude>
     <ClInclude Include="LoaderPrivate.h">
       <Filter>Header Files</Filter>
@@ -261,6 +231,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Initialize.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectiveDLLInjection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectiveLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="detours.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="detver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
