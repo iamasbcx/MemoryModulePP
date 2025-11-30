@@ -103,7 +103,7 @@ HANDLE WINAPI HookCreateFileW(
     if (MmpIsMemoryModuleFileName(lpFileName, &entry)) {
         HANDLE hEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
 
-        MmpInsertHandleEntry(hEvent, entry);
+        MmpInsertHandleEntry(hEvent, entry, FALSE);
         return hEvent;
     }
 
