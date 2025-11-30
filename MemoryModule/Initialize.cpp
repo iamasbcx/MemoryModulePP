@@ -229,7 +229,7 @@ PLIST_ENTRY FindLdrpHashTable() {
 
 VOID InitializeWindowsVersion() {
 
-	WINDOWS_VERSION version = WINDOWS_VERSION::invalid;
+	WINDOWS_VERSION version = WindowsVersionInvalid;
 	DWORD MajorVersion, MinorVersion, BuildNumber, LdrDataTableEntrySize;
 
 	RtlGetNtVersionNumbers(
@@ -243,7 +243,7 @@ VOID InitializeWindowsVersion() {
 	case 5: {
 		if ((MinorVersion == 1 && BuildNumber == 2600) ||
 			(MinorVersion == 2 && BuildNumber == 3790)) {
-			version = WINDOWS_VERSION::xp;
+			version = WindowsVersionXp;
 			LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_XP);
 		}
 
@@ -257,7 +257,7 @@ VOID InitializeWindowsVersion() {
 			case 6000:
 			case 6001:
 			case 6002:
-				version = WINDOWS_VERSION::vista;
+				version = WindowsVersionVista;
 				LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_VISTA);
 				break;
 			}
@@ -268,7 +268,7 @@ VOID InitializeWindowsVersion() {
 			switch (BuildNumber) {
 			case 7600:
 			case 7601:
-				version = WINDOWS_VERSION::win7;
+				version = WindowsVersionWin7;
 				LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WIN7);
 				break;
 			}
@@ -277,7 +277,7 @@ VOID InitializeWindowsVersion() {
 
 		case 2: {
 			if (BuildNumber == 9200) {
-				version = WINDOWS_VERSION::win8;
+				version = WindowsVersionWin8;
 				LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WIN8);
 			}
 			break;
@@ -285,7 +285,7 @@ VOID InitializeWindowsVersion() {
 
 		case 3: {
 			if (BuildNumber == 9600) {
-				version = WINDOWS_VERSION::winBlue;
+				version = WindowsVersionWinBlue;
 				LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WINBLUE);
 			}
 			break;
@@ -303,24 +303,24 @@ VOID InitializeWindowsVersion() {
 				if (BuildNumber >= 15063) {
 					if (BuildNumber >= 22000) {
 						// [22000, ?)
-						version = WINDOWS_VERSION::win11;
+						version = WindowsVersionWin11;
 						LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WIN11);
 					}
 					else {
 						// [15063, 22000)
-						version = WINDOWS_VERSION::win10_2;
+						version = WindowsVersionWin10_2;
 						LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WIN10_2);
 					}
 				}
 				else {
 					//  [14393, 15063)
-					version = WINDOWS_VERSION::win10_1;
+					version = WindowsVersionWin10_1;
 					LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WIN10_1);
 				}
 			}
 			else {
 				// [10240, 14393)
-				version = WINDOWS_VERSION::win10;
+				version = WindowsVersionWin10;
 				LdrDataTableEntrySize = sizeof(LDR_DATA_TABLE_ENTRY_WIN10);
 			}
 		}
@@ -331,7 +331,7 @@ VOID InitializeWindowsVersion() {
 	}
 
 	MmpGlobalDataPtr->WindowsVersion = version;
-	if (version != WINDOWS_VERSION::invalid) {
+	if (version != WindowsVersionInvalid) {
 		MmpGlobalDataPtr->NtVersions.MajorVersion = MajorVersion;
 		MmpGlobalDataPtr->NtVersions.MinorVersion = MinorVersion;
 		MmpGlobalDataPtr->NtVersions.BuildNumber = BuildNumber;
@@ -470,7 +470,7 @@ NTSTATUS InitializeLockHeld() {
 		GetSystemInfo(&MmpGlobalDataPtr->SystemInfo);
 
 		InitializeWindowsVersion();
-		if (MmpGlobalDataPtr->WindowsVersion == WINDOWS_VERSION::invalid) {
+		if (MmpGlobalDataPtr->WindowsVersion == WindowsVersionInvalid) {
 			NtUnmapViewOfSection(NtCurrentProcess(), MmpGlobalDataPtr);
 			status = STATUS_NOT_SUPPORTED;
 			break;

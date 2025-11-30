@@ -116,25 +116,25 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 		CorImage = true;
 
 		PIMAGE_COR20_HEADER cor = (PIMAGE_COR20_HEADER)(LPBYTE(BaseAddress) + com.VirtualAddress);
-		if (cor->Flags & ReplacesCorHdrNumericDefines::COMIMAGE_FLAGS_ILONLY) {
+		if (cor->Flags & COMIMAGE_FLAGS_ILONLY) {
 			CorIL = true;
 		}
 	}
 
 	switch (MmpGlobalDataPtr->WindowsVersion) {
-	case WINDOWS_VERSION::win11: {
+	case WindowsVersionWin11: {
 		PLDR_DATA_TABLE_ENTRY_WIN11 entry = (PLDR_DATA_TABLE_ENTRY_WIN11)LdrEntry;
 		entry->CheckSum = headers->OptionalHeader.CheckSum;
 	}
 		
-	case WINDOWS_VERSION::win10:
-	case WINDOWS_VERSION::win10_1:
-	case WINDOWS_VERSION::win10_2: {
+	case WindowsVersionWin10:
+	case WindowsVersionWin10_1:
+	case WindowsVersionWin10_2: {
 		PLDR_DATA_TABLE_ENTRY_WIN10 entry = (PLDR_DATA_TABLE_ENTRY_WIN10)LdrEntry;
 		entry->ReferenceCount = 1;
 	}
-	case WINDOWS_VERSION::win8:
-	case WINDOWS_VERSION::winBlue: {
+	case WindowsVersionWin8:
+	case WindowsVersionWinBlue: {
 		PLDR_DATA_TABLE_ENTRY_WIN8 entry = (PLDR_DATA_TABLE_ENTRY_WIN8)LdrEntry;
 		BOOL IsWin8 = RtlIsWindowsVersionInScope(6, 2, 0, 6, 3, -1);
 		NtQuerySystemTime(&entry->LoadTime);
@@ -162,14 +162,14 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 		FlagsProcessed = true;
 	}
 
-	case WINDOWS_VERSION::win7: {
+	case WindowsVersionWin7: {
 		if (MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_WIN7)) {
 			PLDR_DATA_TABLE_ENTRY_WIN7 entry = (PLDR_DATA_TABLE_ENTRY_WIN7)LdrEntry;
 			entry->OriginalBase = headers->OptionalHeader.ImageBase;
 			NtQuerySystemTime(&entry->LoadTime);
 		}
 	}
-	case WINDOWS_VERSION::vista: {
+	case WindowsVersionVista: {
 		if (MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_VISTA) ||
 			MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_WIN7)) {
 			PLDR_DATA_TABLE_ENTRY_VISTA entry = (PLDR_DATA_TABLE_ENTRY_VISTA)LdrEntry;
@@ -178,7 +178,7 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 			InitializeListHead(&entry->ServiceTagLinks);
 		}
 	}
-	case WINDOWS_VERSION::xp: {
+	case WindowsVersionXp: {
 		LdrEntry->DllBase = BaseAddress;
 		LdrEntry->SizeOfImage = headers->OptionalHeader.SizeOfImage;
 		LdrEntry->TimeDateStamp = headers->FileHeader.TimeDateStamp;
@@ -201,19 +201,19 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 BOOL NTAPI RtlFreeLdrDataTableEntry(_In_ PLDR_DATA_TABLE_ENTRY LdrEntry) {
 	HANDLE heap = NtCurrentPeb()->ProcessHeap;
 	switch (MmpGlobalDataPtr->WindowsVersion) {
-	case WINDOWS_VERSION::win11:
-	case WINDOWS_VERSION::win10:
-	case WINDOWS_VERSION::win10_1:
-	case WINDOWS_VERSION::win10_2:
-	case WINDOWS_VERSION::win8:
-	case WINDOWS_VERSION::winBlue: {
+	case WindowsVersionWin11:
+	case WindowsVersionWin10:
+	case WindowsVersionWin10_1:
+	case WindowsVersionWin10_2:
+	case WindowsVersionWin8:
+	case WindowsVersionWinBlue: {
 		PLDR_DATA_TABLE_ENTRY_WIN10 entry = (PLDR_DATA_TABLE_ENTRY_WIN10)LdrEntry;
 		RtlFreeDependencies(entry);
 		RtlFreeHeap(heap, 0, entry->DdagNode);
 		RtlRemoveModuleBaseAddressIndexNode(LdrEntry);
 	}
-	case WINDOWS_VERSION::win7:
-	case WINDOWS_VERSION::vista: {
+	case WindowsVersionWin7:
+	case WindowsVersionVista: {
 		if (MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_VISTA) ||
 			MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_WIN7)) {
 			PLDR_DATA_TABLE_ENTRY_VISTA entry = (PLDR_DATA_TABLE_ENTRY_VISTA)LdrEntry;
@@ -226,7 +226,7 @@ BOOL NTAPI RtlFreeLdrDataTableEntry(_In_ PLDR_DATA_TABLE_ENTRY LdrEntry) {
 			}
 		}
 	}
-	case WINDOWS_VERSION::xp: {
+	case WindowsVersionXp: {
 		RtlFreeHeap(heap, 0, LdrEntry->BaseDllName.Buffer);
 		RtlFreeHeap(heap, 0, LdrEntry->FullDllName.Buffer);
 		RemoveEntryList(&LdrEntry->InLoadOrderLinks);
@@ -317,15 +317,15 @@ ULONG NTAPI LdrHashEntry(_In_ UNICODE_STRING& DllBaseName, _In_ BOOL ToIndex) {
 	ULONG result = 0;
 
 	switch (MmpGlobalDataPtr->WindowsVersion) {
-	case WINDOWS_VERSION::xp:
+	case WindowsVersionXp:
 		result = RtlUpcaseUnicodeChar(DllBaseName.Buffer[0]) - 'A';
 		break;
 
-	case WINDOWS_VERSION::vista:
+	case WindowsVersionVista:
 		result = RtlUpcaseUnicodeChar(DllBaseName.Buffer[0]) - 1;
 		break;
 
-	case WINDOWS_VERSION::win7:
+	case WindowsVersionWin7:
 		for (USHORT i = 0; i < (DllBaseName.Length / sizeof(wchar_t)); ++i)
 			result += 0x1003F * RtlUpcaseUnicodeChar(DllBaseName.Buffer[i]);
 		break;

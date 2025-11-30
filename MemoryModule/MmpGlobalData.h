@@ -103,18 +103,19 @@ typedef struct _MMP_IAT_DATA {
 
 }MMP_IAT_DATA, * PMMP_IAT_DATA;
 
-typedef enum class _WINDOWS_VERSION :BYTE {
-	null,
-	xp,
-	vista,
-	win7,
-	win8,
-	winBlue,
-	win10,
-	win10_1,
-	win10_2,
-	win11,
-	invalid
+// WINDOWS_VERSION enumeration - VS2010 compatible (no C++11 enum class)
+typedef enum _WINDOWS_VERSION {
+	WindowsVersionNull = 0,
+	WindowsVersionXp,
+	WindowsVersionVista,
+	WindowsVersionWin7,
+	WindowsVersionWin8,
+	WindowsVersionWinBlue,
+	WindowsVersionWin10,
+	WindowsVersionWin10_1,
+	WindowsVersionWin10_2,
+	WindowsVersionWin11,
+	WindowsVersionInvalid
 }WINDOWS_VERSION;
 
 #define MEMORY_MODULE_MAKE_PREVIEW(MinorVersion) (0x8000|(MinorVersion))
