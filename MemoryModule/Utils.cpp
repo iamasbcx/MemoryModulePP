@@ -142,7 +142,7 @@ BOOL NTAPI LdrpCallInitializers(PMEMORYMODULE module, DWORD dwReason) {
 				module->initialized = TRUE;
 
 				if (dwReason == DLL_PROCESS_ATTACH) {
-					if (MmpGlobalDataPtr->WindowsVersion <= WINDOWS_VERSION::winBlue) {
+					if (MmpGlobalDataPtr->WindowsVersion <= WindowsVersionWinBlue) {
 						PLDR_DATA_TABLE_ENTRY_WINBLUE(module->LdrEntry)->ProcessAttachCalled = TRUE;
 					}
 					else {

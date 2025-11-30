@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  push:
+    branches: [ master, main, copilot/** ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        platform: [x86, x64]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+    
+    - name: Upgrade PlatformToolset
+      shell: powershell
+      run: |
+        # Upgrade PlatformToolset from v100 to v143 for GitHub Actions compatibility
+        $vcxproj = Get-Content "MemoryModule\MemoryModule.vcxproj" -Raw
+        $vcxproj = $vcxproj -replace '<PlatformToolset>v100</PlatformToolset>', '<PlatformToolset>v143</PlatformToolset>'
+        Set-Content "MemoryModule\MemoryModule.vcxproj" -Value $vcxproj
+    
+    - name: Build
+      run: msbuild MemoryModulePP.sln /p:Configuration=${{ matrix.configuration }} /p:Platform=${{ matrix.platform }} /m
