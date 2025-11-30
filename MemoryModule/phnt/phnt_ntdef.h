@@ -13,22 +13,21 @@
 // This header file provides basic NT types not included in Win32. If you have included winnt.h
 // (perhaps indirectly), you must use this file instead of ntdef.h.
 
-// VS2010 compatibility - SAL annotations
-#if _MSC_VER < 1600
-// Very old VS, shouldn't happen but define empty macros just in case
-#ifndef _Return_type_success_
-#define _Return_type_success_(expr)
-#endif
-#ifndef _Field_size_bytes_part_opt_
-#define _Field_size_bytes_part_opt_(size, count)
-#endif
-#ifndef _Field_size_bytes_part_
-#define _Field_size_bytes_part_(size, count)
-#endif
+// VS2010 compatibility - SAL annotations and NT API macros
+// VS2010 = _MSC_VER 1600, VS2012 = 1700
+
+// NTSYSCALLAPI and NTAPI definitions for VS2010 compatibility
+#ifndef NTSYSCALLAPI
+#define NTSYSCALLAPI DECLSPEC_IMPORT
 #endif
 
-// VS2010 (1600) specific SAL compatibility
-#if _MSC_VER >= 1600 && _MSC_VER < 1700
+#ifndef NTAPI
+#define NTAPI __stdcall
+#endif
+
+// SAL annotation compatibility for VS2010 and earlier
+#if defined(_MSC_VER) && _MSC_VER < 1700
+
 #ifndef _Return_type_success_
 #define _Return_type_success_(expr)
 #endif
@@ -68,7 +67,119 @@
 #ifndef _Success_
 #define _Success_(expr)
 #endif
+#ifndef _In_reads_bytes_opt_
+#define _In_reads_bytes_opt_(size)
 #endif
+#ifndef _In_reads_bytes_
+#define _In_reads_bytes_(size)
+#endif
+#ifndef _Out_writes_bytes_
+#define _Out_writes_bytes_(size)
+#endif
+#ifndef _Out_writes_bytes_opt_
+#define _Out_writes_bytes_opt_(size)
+#endif
+#ifndef _Inout_updates_bytes_
+#define _Inout_updates_bytes_(size)
+#endif
+#ifndef _Out_writes_bytes_to_
+#define _Out_writes_bytes_to_(size, count)
+#endif
+#ifndef _Out_writes_bytes_to_opt_
+#define _Out_writes_bytes_to_opt_(size, count)
+#endif
+#ifndef _In_reads_
+#define _In_reads_(size)
+#endif
+#ifndef _In_reads_opt_
+#define _In_reads_opt_(size)
+#endif
+#ifndef _Out_writes_
+#define _Out_writes_(size)
+#endif
+#ifndef _Out_writes_opt_
+#define _Out_writes_opt_(size)
+#endif
+#ifndef _Outptr_
+#define _Outptr_
+#endif
+#ifndef _Outptr_opt_
+#define _Outptr_opt_
+#endif
+#ifndef _Outptr_result_maybenull_
+#define _Outptr_result_maybenull_
+#endif
+#ifndef _Out_range_
+#define _Out_range_(lb, ub)
+#endif
+#ifndef _Ret_range_
+#define _Ret_range_(lb, ub)
+#endif
+#ifndef _Post_satisfies_
+#define _Post_satisfies_(expr)
+#endif
+#ifndef _Field_size_
+#define _Field_size_(size)
+#endif
+#ifndef _Field_size_opt_
+#define _Field_size_opt_(size)
+#endif
+#ifndef _Field_size_bytes_
+#define _Field_size_bytes_(size)
+#endif
+#ifndef _Field_size_bytes_opt_
+#define _Field_size_bytes_opt_(size)
+#endif
+#ifndef _Struct_size_bytes_
+#define _Struct_size_bytes_(size)
+#endif
+#ifndef _Deref_post_count_
+#define _Deref_post_count_(size)
+#endif
+#ifndef _Deref_post_opt_count_
+#define _Deref_post_opt_count_(size)
+#endif
+#ifndef _In_range_
+#define _In_range_(lb, ub)
+#endif
+#ifndef _In_reads_z_
+#define _In_reads_z_(size)
+#endif
+#ifndef _Inout_updates_
+#define _Inout_updates_(size)
+#endif
+#ifndef _Inout_updates_opt_
+#define _Inout_updates_opt_(size)
+#endif
+#ifndef _Inout_updates_bytes_opt_
+#define _Inout_updates_bytes_opt_(size)
+#endif
+#ifndef _Inout_updates_bytes_to_
+#define _Inout_updates_bytes_to_(size, count)
+#endif
+#ifndef _Inout_updates_bytes_to_opt_
+#define _Inout_updates_bytes_to_opt_(size, count)
+#endif
+#ifndef _Out_writes_to_
+#define _Out_writes_to_(size, count)
+#endif
+#ifndef _Out_writes_to_opt_
+#define _Out_writes_to_opt_(size, count)
+#endif
+#ifndef _Out_writes_bytes_all_
+#define _Out_writes_bytes_all_(size)
+#endif
+#ifndef _Post_readable_byte_size_
+#define _Post_readable_byte_size_(size)
+#endif
+#ifndef _Post_writable_byte_size_
+#define _Post_writable_byte_size_(size)
+#endif
+#ifndef _Readable_bytes_
+#define _Readable_bytes_(size)
+#endif
+
+#endif // _MSC_VER < 1700
 
 #ifndef NOTHING
 #define NOTHING
