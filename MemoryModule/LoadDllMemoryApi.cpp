@@ -7,8 +7,8 @@ HMEMORYMODULE WINAPI LoadLibraryMemoryExW(
 	_In_opt_ LPCWSTR DllBaseName,
 	_In_opt_ LPCWSTR DllFullName,
 	_In_ DWORD Flags) {
-	HMEMORYMODULE hMemoryModule = nullptr;
-	NTSTATUS status = LdrLoadDllMemoryExW(&hMemoryModule, nullptr, Flags, BufferAddress, Reserved, DllBaseName, DllFullName);
+	HMEMORYMODULE hMemoryModule = NULL;
+	NTSTATUS status = LdrLoadDllMemoryExW(&hMemoryModule, NULL, Flags, BufferAddress, Reserved, DllBaseName, DllFullName);
 	if (!NT_SUCCESS(status) || status == STATUS_IMAGE_MACHINE_TYPE_MISMATCH) {
 		SetLastError(RtlNtStatusToDosError(status));
 	}
@@ -21,9 +21,9 @@ HMEMORYMODULE WINAPI LoadLibraryMemoryExA(
 	_In_opt_ LPCSTR DllBaseName,
 	_In_opt_ LPCSTR DllFullName,
 	_In_ DWORD Flags) {
-	LPWSTR _DllName = nullptr, _DllFullName = nullptr;
+	LPWSTR _DllName = NULL, _DllFullName = NULL;
 	size_t size;
-	HMEMORYMODULE result = nullptr;
+	HMEMORYMODULE result = NULL;
 	HANDLE heap = NtCurrentPeb()->ProcessHeap;
 
 	do {
@@ -36,7 +36,7 @@ HMEMORYMODULE WINAPI LoadLibraryMemoryExA(
 				break;
 			}
 
-			mbstowcs_s(nullptr, _DllName, size, DllBaseName, size);
+			mbstowcs_s(NULL, _DllName, size, DllBaseName, size);
 		}
 
 		if (DllFullName) {
@@ -48,7 +48,7 @@ HMEMORYMODULE WINAPI LoadLibraryMemoryExA(
 				break;
 			}
 
-			mbstowcs_s(nullptr, _DllFullName, size, DllFullName, size);
+			mbstowcs_s(NULL, _DllFullName, size, DllFullName, size);
 		}
 
 		result = LoadLibraryMemoryExW(BufferAddress, 0, _DllName, _DllFullName, Flags);
@@ -60,7 +60,7 @@ HMEMORYMODULE WINAPI LoadLibraryMemoryExA(
 }
 
 HMEMORYMODULE WINAPI LoadLibraryMemory(_In_ PVOID BufferAddress) {
-	return LoadLibraryMemoryExW(BufferAddress, 0, nullptr, nullptr, 0);
+	return LoadLibraryMemoryExW(BufferAddress, 0, NULL, NULL, 0);
 }
 
 BOOL WINAPI FreeLibraryMemory(_In_ HMEMORYMODULE hMemoryModule) {

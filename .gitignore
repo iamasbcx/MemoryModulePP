@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 /test/a.dll
 /MemoryModule/DebugDll
+_codeql_detected_source_root

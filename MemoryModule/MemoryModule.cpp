@@ -44,19 +44,19 @@ int MmpSizeOfImageHeadersUnsafe(PVOID BaseAddress) {
 
 PMEMORYMODULE WINAPI MapMemoryModuleHandle(HMEMORYMODULE hModule) {
 
-	if (!hModule)return nullptr;
+	if (!hModule)return NULL;
 
 	PIMAGE_NT_HEADERS nh = RtlImageNtHeader(hModule);
-	if (!nh)return nullptr;
+	if (!nh)return NULL;
 
 	int sizeOfHeaders = MmpSizeOfImageHeadersUnsafe(hModule);
 	PMEMORYMODULE pModule = (PMEMORYMODULE)((LPBYTE)hModule + sizeOfHeaders);
-	if (pModule->Signature != MEMORY_MODULE_SIGNATURE || pModule->codeBase != (LPBYTE)hModule)return nullptr;
+	if (pModule->Signature != MEMORY_MODULE_SIGNATURE || pModule->codeBase != (LPBYTE)hModule)return NULL;
 	return pModule;
 }
 
 BOOL WINAPI IsValidMemoryModuleHandle(HMEMORYMODULE hModule) {
-	return MapMemoryModuleHandle(hModule) != nullptr;
+	return MapMemoryModuleHandle(hModule) != NULL;
 }
 
 NTSTATUS MmpInitializeStructure(DWORD ImageFileSize, LPCVOID ImageFileBuffer, PIMAGE_NT_HEADERS ImageHeaders) {
@@ -118,8 +118,8 @@ NTSTATUS MemoryLoadLibrary(
 	_In_ LPCVOID data,
 	_In_ DWORD size) {
 
-	PIMAGE_DOS_HEADER dos_header = nullptr;
-	PIMAGE_NT_HEADERS old_header = nullptr;
+	PIMAGE_DOS_HEADER dos_header = NULL;
+	PIMAGE_NT_HEADERS old_header = NULL;
 	BOOLEAN CorImage = FALSE;
 	NTSTATUS status = STATUS_SUCCESS;
 
@@ -128,7 +128,7 @@ NTSTATUS MemoryLoadLibrary(
 	//
 	__try {
 
-		*MemoryModuleHandle = nullptr;
+		*MemoryModuleHandle = NULL;
 
 		//
 		// Check dos magic
@@ -173,7 +173,7 @@ NTSTATUS MemoryLoadLibrary(
 	//
 	// Reserve the address range of image
 	//
-	LPBYTE base = nullptr;
+	LPBYTE base = NULL;
 	if ((old_header->OptionalHeader.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE) == 0) {
 		base = (LPBYTE)VirtualAlloc(
 			LPVOID(old_header->OptionalHeader.ImageBase),
@@ -184,7 +184,7 @@ NTSTATUS MemoryLoadLibrary(
 	}
 	if (!base) {
 		base = (LPBYTE)VirtualAlloc(
-			nullptr,
+			NULL,
 			old_header->OptionalHeader.SizeOfImage,
 			MEM_RESERVE,
 			PAGE_EXECUTE_READWRITE
@@ -265,7 +265,7 @@ NTSTATUS MemoryLoadLibrary(
 		//
 		// Rebase image
 		//
-		auto locationDelta = new_header->OptionalHeader.ImageBase - old_header->OptionalHeader.ImageBase;
+		SIZE_T locationDelta = new_header->OptionalHeader.ImageBase - old_header->OptionalHeader.ImageBase;
 		if (locationDelta) {
 			typedef struct _REBASE_INFO {
 				USHORT Offset : 12;
@@ -286,7 +286,7 @@ NTSTATUS MemoryLoadLibrary(
 
 			if (dir->Size && dir->VirtualAddress) {
 				while ((LPBYTE(relocation) < LPBYTE(base) + dir->VirtualAddress + dir->Size) && relocation->VirtualAddress > 0) {
-					auto relInfo = (_REBASE_INFO*)&relocation->TypeOffset;
+					_REBASE_INFO* relInfo = (_REBASE_INFO*)&relocation->TypeOffset;
 					for (DWORD i = 0; i < relocation->TypeOffsetCount(); ++i, ++relInfo) {
 						switch (relInfo->Type) {
 						case IMAGE_REL_BASED_HIGHLOW: *(DWORD*)(base + relocation->VirtualAddress + relInfo->Offset) += (DWORD)locationDelta; break;
@@ -300,7 +300,7 @@ NTSTATUS MemoryLoadLibrary(
 
 					// advance to next relocation block
 					//relocation->VirtualAddress += module->headers_align;
-					relocation = decltype(relocation)(OffsetPointer(relocation, relocation->SizeOfBlock));
+					relocation = (PIMAGE_BASE_RELOCATION_HEADER)(OffsetPointer(relocation, relocation->SizeOfBlock));
 				}
 			}
 

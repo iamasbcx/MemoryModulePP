@@ -2,9 +2,10 @@
 #include <cstddef>
 
 static NTSTATUS RtlFreeDependencies(_In_ PLDR_DATA_TABLE_ENTRY_WIN10 LdrEntry) {
-	_LDR_DDAG_NODE* DependentDdgeNode = nullptr;
-	PLDR_DATA_TABLE_ENTRY_WIN10 ModuleEntry = nullptr;
-	_LDRP_CSLIST* head = (decltype(head))LdrEntry->DdagNode->Dependencies, * entry = head;
+	_LDR_DDAG_NODE* DependentDdgeNode = NULL;
+	PLDR_DATA_TABLE_ENTRY_WIN10 ModuleEntry = NULL;
+	_LDRP_CSLIST* head = (_LDRP_CSLIST*)LdrEntry->DdagNode->Dependencies;
+	_LDRP_CSLIST* entry = head;
 	HANDLE heap = NtCurrentPeb()->ProcessHeap;
 	BOOL IsWin8 = RtlIsWindowsVersionInScope(6, 2, 0, 6, 3, -1);
 	if (!LdrEntry->DdagNode->Dependencies)return STATUS_SUCCESS;
@@ -13,10 +14,11 @@ static NTSTATUS RtlFreeDependencies(_In_ PLDR_DATA_TABLE_ENTRY_WIN10 LdrEntry) {
 	do {
 		DependentDdgeNode = entry->Dependent.DependentDdagNode;
 		if (DependentDdgeNode->Modules.Flink->Flink != &DependentDdgeNode->Modules) __fastfail(FAST_FAIL_CORRUPT_LIST_ENTRY);
-		ModuleEntry = decltype(ModuleEntry)((size_t)DependentDdgeNode->Modules.Flink - offsetof(_LDR_DATA_TABLE_ENTRY_WIN8, NodeModuleLink));
+		ModuleEntry = (PLDR_DATA_TABLE_ENTRY_WIN10)((size_t)DependentDdgeNode->Modules.Flink - offsetof(_LDR_DATA_TABLE_ENTRY_WIN8, NodeModuleLink));
 		if (ModuleEntry->DdagNode != DependentDdgeNode) __fastfail(FAST_FAIL_CORRUPT_LIST_ENTRY);
 		if (!DependentDdgeNode->IncomingDependencies) __fastfail(FAST_FAIL_CORRUPT_LIST_ENTRY);
-		_LDRP_CSLIST::_LDRP_CSLIST_INCOMMING* _last = DependentDdgeNode->IncomingDependencies, * _entry = _last;
+		_LDRP_CSLIST::_LDRP_CSLIST_INCOMMING* _last = DependentDdgeNode->IncomingDependencies;
+		_LDRP_CSLIST::_LDRP_CSLIST_INCOMMING* _entry = _last;
 		_LDR_DDAG_NODE* CurrentDdagNode;
 		ULONG State = 0;
 		PVOID Cookies;
@@ -27,13 +29,13 @@ static NTSTATUS RtlFreeDependencies(_In_ PLDR_DATA_TABLE_ENTRY_WIN10 LdrEntry) {
 		} while (State != LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED);
 
 		do {
-			CurrentDdagNode = (decltype(CurrentDdagNode))((size_t)_entry->IncommingDdagNode & ~1);
+			CurrentDdagNode = (_LDR_DDAG_NODE*)((size_t)_entry->IncommingDdagNode & ~1);
 			if (CurrentDdagNode == LdrEntry->DdagNode) {
 				//node is head
 				if (_entry == DependentDdgeNode->IncomingDependencies) {
 					//only one node in list
 					if (_entry->NextIncommingEntry == (PSINGLE_LIST_ENTRY)DependentDdgeNode->IncomingDependencies) {
-						DependentDdgeNode->IncomingDependencies = nullptr;
+						DependentDdgeNode->IncomingDependencies = NULL;
 					}
 					else {
 						//find the last node in the list
@@ -51,17 +53,17 @@ static NTSTATUS RtlFreeDependencies(_In_ PLDR_DATA_TABLE_ENTRY_WIN10 LdrEntry) {
 			}
 
 			//save the last entry
-			if (_last != _entry)_last = (decltype(_last))_last->NextIncommingEntry;
-			_entry = (decltype(_entry))_entry->NextIncommingEntry;
+			if (_last != _entry)_last = (_LDRP_CSLIST::_LDRP_CSLIST_INCOMMING*)_last->NextIncommingEntry;
+			_entry = (_LDRP_CSLIST::_LDRP_CSLIST_INCOMMING*)_entry->NextIncommingEntry;
 		} while (_entry != _last);
 		//free LoaderLock
 		LdrUnlockLoaderLock(0, Cookies);
-		entry = (decltype(entry))entry->Dependent.NextDependentEntry;
+		entry = (_LDRP_CSLIST*)entry->Dependent.NextDependentEntry;
 
 		//free it
 		if (IsWin8) {
 			//Update win8 dep count
-			_LDR_DDAG_NODE_WIN8* win8_node = (decltype(win8_node))ModuleEntry->DdagNode;
+			_LDR_DDAG_NODE_WIN8* win8_node = (_LDR_DDAG_NODE_WIN8*)ModuleEntry->DdagNode;
 			if (!win8_node->DependencyCount)__fastfail(FAST_FAIL_CORRUPT_LIST_ENTRY);
 			--win8_node->DependencyCount;
 			if (!ModuleEntry->DdagNode->LoadCount && win8_node->ReferenceCount == 1 && !win8_node->DependencyCount) {
@@ -75,14 +77,14 @@ static NTSTATUS RtlFreeDependencies(_In_ PLDR_DATA_TABLE_ENTRY_WIN10 LdrEntry) {
 		RtlFreeHeap(heap, 0, LdrEntry->DdagNode->Dependencies);
 
 		//lookup next dependent.
-		LdrEntry->DdagNode->Dependencies = (_LDRP_CSLIST::_LDRP_CSLIST_DEPENDENT*)(entry == head ? nullptr : entry);
+		LdrEntry->DdagNode->Dependencies = (_LDRP_CSLIST::_LDRP_CSLIST_DEPENDENT*)(entry == head ? NULL : entry);
 	} while (entry != head);
 
 	return STATUS_SUCCESS;
 }
 
 PLDR_DATA_TABLE_ENTRY NTAPI RtlAllocateDataTableEntry(_In_ PVOID BaseAddress) {
-	PLDR_DATA_TABLE_ENTRY LdrEntry = nullptr;
+	PLDR_DATA_TABLE_ENTRY LdrEntry = NULL;
 	PIMAGE_NT_HEADERS NtHeader;
 	HANDLE heap = NtCurrentPeb()->ProcessHeap;
 
@@ -109,11 +111,11 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 	bool FlagsProcessed = false;
 
 	bool CorImage = false, CorIL = false;
-	auto& com = headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR];
+	IMAGE_DATA_DIRECTORY& com = headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR];
 	if (com.Size && com.VirtualAddress) {
 		CorImage = true;
 
-		auto cor = PIMAGE_COR20_HEADER(LPBYTE(BaseAddress) + com.VirtualAddress);
+		PIMAGE_COR20_HEADER cor = (PIMAGE_COR20_HEADER)(LPBYTE(BaseAddress) + com.VirtualAddress);
 		if (cor->Flags & ReplacesCorHdrNumericDefines::COMIMAGE_FLAGS_ILONLY) {
 			CorIL = true;
 		}
@@ -121,26 +123,26 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 
 	switch (MmpGlobalDataPtr->WindowsVersion) {
 	case WINDOWS_VERSION::win11: {
-		auto entry = (PLDR_DATA_TABLE_ENTRY_WIN11)LdrEntry;
+		PLDR_DATA_TABLE_ENTRY_WIN11 entry = (PLDR_DATA_TABLE_ENTRY_WIN11)LdrEntry;
 		entry->CheckSum = headers->OptionalHeader.CheckSum;
 	}
 		
 	case WINDOWS_VERSION::win10:
 	case WINDOWS_VERSION::win10_1:
 	case WINDOWS_VERSION::win10_2: {
-		auto entry = (PLDR_DATA_TABLE_ENTRY_WIN10)LdrEntry;
+		PLDR_DATA_TABLE_ENTRY_WIN10 entry = (PLDR_DATA_TABLE_ENTRY_WIN10)LdrEntry;
 		entry->ReferenceCount = 1;
 	}
 	case WINDOWS_VERSION::win8:
 	case WINDOWS_VERSION::winBlue: {
-		auto entry = (PLDR_DATA_TABLE_ENTRY_WIN8)LdrEntry;
+		PLDR_DATA_TABLE_ENTRY_WIN8 entry = (PLDR_DATA_TABLE_ENTRY_WIN8)LdrEntry;
 		BOOL IsWin8 = RtlIsWindowsVersionInScope(6, 2, 0, 6, 3, -1);
 		NtQuerySystemTime(&entry->LoadTime);
 		entry->OriginalBase = headers->OptionalHeader.ImageBase;
 		entry->BaseNameHashValue = LdrHashEntry(DllBaseName, false);
 		entry->LoadReason = LoadReasonDynamicLoad;
 		if (!NT_SUCCESS(RtlInsertModuleBaseAddressIndexNode(LdrEntry, BaseAddress)))return FALSE;
-		if (!(entry->DdagNode = (decltype(entry->DdagNode))
+		if (!(entry->DdagNode = (_LDR_DDAG_NODE_WIN8*)
 			RtlAllocateHeap(heap, HEAP_ZERO_MEMORY, IsWin8 ? sizeof(_LDR_DDAG_NODE_WIN8) : sizeof(_LDR_DDAG_NODE))))return FALSE;
 
 		entry->NodeModuleLink.Flink = &entry->DdagNode->Modules;
@@ -162,7 +164,7 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 
 	case WINDOWS_VERSION::win7: {
 		if (MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_WIN7)) {
-			auto entry = (PLDR_DATA_TABLE_ENTRY_WIN7)LdrEntry;
+			PLDR_DATA_TABLE_ENTRY_WIN7 entry = (PLDR_DATA_TABLE_ENTRY_WIN7)LdrEntry;
 			entry->OriginalBase = headers->OptionalHeader.ImageBase;
 			NtQuerySystemTime(&entry->LoadTime);
 		}
@@ -170,7 +172,7 @@ BOOL NTAPI RtlInitializeLdrDataTableEntry(
 	case WINDOWS_VERSION::vista: {
 		if (MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_VISTA) ||
 			MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_WIN7)) {
-			auto entry = (PLDR_DATA_TABLE_ENTRY_VISTA)LdrEntry;
+			PLDR_DATA_TABLE_ENTRY_VISTA entry = (PLDR_DATA_TABLE_ENTRY_VISTA)LdrEntry;
 			InitializeListHead(&entry->ForwarderLinks);
 			InitializeListHead(&entry->StaticLinks);
 			InitializeListHead(&entry->ServiceTagLinks);
@@ -205,7 +207,7 @@ BOOL NTAPI RtlFreeLdrDataTableEntry(_In_ PLDR_DATA_TABLE_ENTRY LdrEntry) {
 	case WINDOWS_VERSION::win10_2:
 	case WINDOWS_VERSION::win8:
 	case WINDOWS_VERSION::winBlue: {
-		auto entry = (PLDR_DATA_TABLE_ENTRY_WIN10)LdrEntry;
+		PLDR_DATA_TABLE_ENTRY_WIN10 entry = (PLDR_DATA_TABLE_ENTRY_WIN10)LdrEntry;
 		RtlFreeDependencies(entry);
 		RtlFreeHeap(heap, 0, entry->DdagNode);
 		RtlRemoveModuleBaseAddressIndexNode(LdrEntry);
@@ -214,10 +216,10 @@ BOOL NTAPI RtlFreeLdrDataTableEntry(_In_ PLDR_DATA_TABLE_ENTRY LdrEntry) {
 	case WINDOWS_VERSION::vista: {
 		if (MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_VISTA) ||
 			MmpGlobalDataPtr->LdrDataTableEntrySize == sizeof(LDR_DATA_TABLE_ENTRY_WIN7)) {
-			PLDR_DATA_TABLE_ENTRY_VISTA entry = (decltype(entry))LdrEntry;
+			PLDR_DATA_TABLE_ENTRY_VISTA entry = (PLDR_DATA_TABLE_ENTRY_VISTA)LdrEntry;
 			PLIST_ENTRY head = &entry->ForwarderLinks, next = head->Flink;
 			while (head != next) {
-				PLDR_DATA_TABLE_ENTRY dep = *(decltype(&dep))((size_t*)next + 2);
+				PLDR_DATA_TABLE_ENTRY dep = *(PLDR_DATA_TABLE_ENTRY*)((size_t*)next + 2);
 				LdrUnloadDll(dep->DllBase);
 				next = next->Flink;
 				RtlFreeHeap(heap, 0, next->Blink);
@@ -294,7 +296,7 @@ PLDR_DATA_TABLE_ENTRY NTAPI RtlFindLdrTableEntryByHandle(_In_ PVOID BaseAddress)
 			return CurEntry;
 		}
 	}
-	return nullptr;
+	return NULL;
 }
 
 PLDR_DATA_TABLE_ENTRY NTAPI RtlFindLdrTableEntryByBaseName(_In_z_ PCWSTR BaseName) {
@@ -308,7 +310,7 @@ PLDR_DATA_TABLE_ENTRY NTAPI RtlFindLdrTableEntryByBaseName(_In_z_ PCWSTR BaseNam
 			return CurEntry;
 		}
 	}
-	return nullptr;
+	return NULL;
 }
 
 ULONG NTAPI LdrHashEntry(_In_ UNICODE_STRING& DllBaseName, _In_ BOOL ToIndex) {

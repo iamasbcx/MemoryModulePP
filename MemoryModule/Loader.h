@@ -32,9 +32,9 @@
 //	it will be unloaded without checking the reference count.
 #define LOAD_FLAGS_NOT_USE_REFERENCE_COUNT			0x00000002
 
-//If this flag is specified, DllName and DllFullName cannot be nullptr,
+//If this flag is specified, DllName and DllFullName cannot be NULL,
 //	they can be arbitrary strings without having to be correct file names and paths.
-//Otherwise, DllName and DllFullName will use random names if they are nullptr.
+//Otherwise, DllName and DllFullName will use random names if they are NULL.
 //For compatibility with GetModuleHandle, DllName and DllFullName should be guaranteed to always end in ".dll"
 #define LOAD_FLAGS_USE_DLL_NAME						0x00000004
 

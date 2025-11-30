@@ -17,7 +17,7 @@ PVOID NTAPI MmpQuerySystemInformation(
     if (ReturnLength)*ReturnLength = 0;
 
     NTSTATUS status;
-    PVOID buffer = nullptr;
+    PVOID buffer = NULL;
     ULONG len = 0;
 
 
@@ -28,7 +28,7 @@ PVOID NTAPI MmpQuerySystemInformation(
             0,
             buffer
         );
-        buffer = nullptr;
+        buffer = NULL;
 
         if (len) {
             len *= 2;
@@ -37,7 +37,7 @@ PVOID NTAPI MmpQuerySystemInformation(
                 0,
                 len
             );
-            if (!buffer)return nullptr;
+            if (!buffer)return NULL;
         }
 
         status = NtQuerySystemInformation(
@@ -55,19 +55,19 @@ PVOID NTAPI MmpQuerySystemInformation(
 
 DWORD NTAPI MmpGetThreadCount() {
     DWORD result = 0;
-    auto pid = NtCurrentProcessId();
+    HANDLE pid = NtCurrentProcessId();
 
-    auto spi = PSYSTEM_PROCESS_INFORMATION(MmpQuerySystemInformation(SystemProcessInformation, nullptr));
+    PSYSTEM_PROCESS_INFORMATION spi = (PSYSTEM_PROCESS_INFORMATION)(MmpQuerySystemInformation(SystemProcessInformation, NULL));
     if (spi) {
-        auto p = spi;
+        PSYSTEM_PROCESS_INFORMATION p = spi;
 
         while (true) {
 
             if (p->UniqueProcessId == pid) {
-                OBJECT_ATTRIBUTES oa{};
-                InitializeObjectAttributes(&oa, nullptr, 0, nullptr, nullptr);
+                OBJECT_ATTRIBUTES oa; memset(&oa, 0, sizeof(oa));
+                InitializeObjectAttributes(&oa, NULL, 0, NULL, NULL);
 
-                THREAD_BASIC_INFORMATION tbi{};
+                THREAD_BASIC_INFORMATION tbi; memset(&tbi, 0, sizeof(tbi));
 
                 NTSTATUS status;
                 for (ULONG i = 0; i < p->NumberOfThreads; ++i) {
@@ -85,7 +85,7 @@ DWORD NTAPI MmpGetThreadCount() {
                             ThreadBasicInformation,
                             &tbi,
                             sizeof(tbi),
-                            nullptr
+                            NULL
                         );
                         if (NT_SUCCESS(status) && !!tbi.TebBaseAddress->ThreadLocalStoragePointer) {
                             ++result;
@@ -114,7 +114,7 @@ PMMP_TLSP_RECORD MmpFindTlspRecordLockHeld() {
 
     while (entry != &MmpGlobalDataPtr->MmpTls->MmpThreadLocalStoragePointer) {
 
-        auto p = CONTAINING_RECORD(entry, MMP_TLSP_RECORD, InMmpThreadLocalStoragePointer);
+        PMMP_TLSP_RECORD p = CONTAINING_RECORD(entry, MMP_TLSP_RECORD, InMmpThreadLocalStoragePointer);
 
         if (p->UniqueThread == NtCurrentThreadId()) {
             assert(p->TlspMmpBlock == teb->ThreadLocalStoragePointer);
@@ -124,12 +124,12 @@ PMMP_TLSP_RECORD MmpFindTlspRecordLockHeld() {
         entry = entry->Flink;
     }
 
-    return nullptr;
+    return NULL;
 }
 
 DWORD MmpAllocateTlsLockHeld() {
     bool success = false;
-    PMMP_TLSP_RECORD record = nullptr;
+    PMMP_TLSP_RECORD record = NULL;
 
     if (!NtCurrentTeb()->ThreadLocalStoragePointer) {
         goto __skip_tls;
@@ -157,7 +157,7 @@ DWORD MmpAllocateTlsLockHeld() {
         if (record->TlspMmpBlock) {
             record->TlspMmpBlock = ((PTLS_VECTOR)record->TlspMmpBlock)->ModuleTlsData;
 
-            auto size = CONTAINING_RECORD(record->TlspLdrBlock, TLS_VECTOR, ModuleTlsData)->Length;
+            SIZE_T size = CONTAINING_RECORD(record->TlspLdrBlock, TLS_VECTOR, ModuleTlsData)->Length;
             if ((HANDLE)(ULONG_PTR)size != NtCurrentThreadId()) {
                 RtlCopyMemory(
                     record->TlspMmpBlock,
@@ -184,13 +184,13 @@ DWORD MmpAllocateTlsLockHeld() {
     if (success) {
         RtlAcquireSRWLockShared(&MmpGlobalDataPtr->MmpTls->MmpTlsListLock);
 
-        auto ThreadLocalStoragePointer = (PVOID*)NtCurrentTeb()->ThreadLocalStoragePointer;
+        PVOID* ThreadLocalStoragePointer = (PVOID*)NtCurrentTeb()->ThreadLocalStoragePointer;
         PLIST_ENTRY entry = MmpGlobalDataPtr->MmpTls->MmpTlsList.Flink;
         while (entry != &MmpGlobalDataPtr->MmpTls->MmpTlsList) {
 
             PTLS_ENTRY tls = CONTAINING_RECORD(entry, TLS_ENTRY, TlsEntryLinks);
-            auto len = tls->TlsDirectory.EndAddressOfRawData - tls->TlsDirectory.StartAddressOfRawData;
-            PVOID data = len ? RtlAllocateHeap(RtlProcessHeap(), 0, len) : nullptr;
+            SIZE_T len = tls->TlsDirectory.EndAddressOfRawData - tls->TlsDirectory.StartAddressOfRawData;
+            PVOID data = len ? RtlAllocateHeap(RtlProcessHeap(), 0, len) : NULL;
             if (!data) {
                 RtlFreeHeap(RtlProcessHeap(), 0, data);
                 success = false;
@@ -238,7 +238,7 @@ DWORD NTAPI MmpUserThreadStart(LPVOID lpThreadParameter) {
     }
 
     PVOID cookie;
-    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, nullptr, &cookie);
+    LdrLockLoaderLock(LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS, NULL, &cookie);
 
     __try {
         MmpAllocateTlsLockHeld();
@@ -293,7 +293,7 @@ HookRtlUserThreadStart(
 
 VOID NTAPI HookLdrShutdownThread(VOID) {
 
-    PMMP_TLSP_RECORD record = nullptr;
+    PMMP_TLSP_RECORD record = NULL;
 
     //
     // Find our tlsp record
@@ -319,7 +319,7 @@ VOID NTAPI HookLdrShutdownThread(VOID) {
     }
     else {
         if (MmpGlobalDataPtr->MmpTls->MmpTlsList.Flink != &MmpGlobalDataPtr->MmpTls->MmpTlsList) {
-            assert(NtCurrentTeb()->ThreadLocalStoragePointer == nullptr);
+            assert(NtCurrentTeb()->ThreadLocalStoragePointer == NULL);
         }
     }
 
@@ -336,7 +336,7 @@ BOOL NTAPI PreHookNtSetInformationProcess() {
     BOOL success = TRUE;
     NTSTATUS status;
 
-    auto ProcessTlsInformation = PPROCESS_TLS_INFORMATION(RtlAllocateHeap(
+    PPROCESS_TLS_INFORMATION ProcessTlsInformation = PPROCESS_TLS_INFORMATION(RtlAllocateHeap(
         RtlProcessHeap(),
         HEAP_ZERO_MEMORY,
         ProcessTlsInformationLength * 2
@@ -365,7 +365,7 @@ BOOL NTAPI PreHookNtSetInformationProcess() {
         }
 
         if (success) {
-            auto tmpTlsInformation = PPROCESS_TLS_INFORMATION(LPBYTE(ProcessTlsInformation) + ProcessTlsInformationLength);
+            PPROCESS_TLS_INFORMATION tmpTlsInformation = PPROCESS_TLS_INFORMATION(LPBYTE(ProcessTlsInformation) + ProcessTlsInformationLength);
             RtlCopyMemory(
                 tmpTlsInformation,
                 ProcessTlsInformation,
@@ -382,9 +382,9 @@ BOOL NTAPI PreHookNtSetInformationProcess() {
             if (NT_SUCCESS(status)) {
                 EnterCriticalSection(&MmpGlobalDataPtr->MmpTls->MmpTlspLock);
                 for (DWORD i = 0; i < CurrentThreadCount; ++i) {
-                    auto const& LdrTls = ProcessTlsInformation->ThreadData[i];
-                    auto const& MmpTls = tmpTlsInformation->ThreadData[i];
-                    auto record = PMMP_TLSP_RECORD(RtlAllocateHeap(RtlProcessHeap(), 0, sizeof(MMP_TLSP_RECORD)));
+                    THREAD_TLS_INFORMATION const& LdrTls = ProcessTlsInformation->ThreadData[i];
+                    THREAD_TLS_INFORMATION const& MmpTls = tmpTlsInformation->ThreadData[i];
+                    PMMP_TLSP_RECORD record = PMMP_TLSP_RECORD(RtlAllocateHeap(RtlProcessHeap(), 0, sizeof(MMP_TLSP_RECORD)));
                     assert(record);
 
                     record->TlspLdrBlock = LdrTls.TlsVector;
@@ -404,7 +404,7 @@ BOOL NTAPI PreHookNtSetInformationProcess() {
 }
 
 int MmpSyncThreadTlsData() {
-    PSYSTEM_PROCESS_INFORMATION pspi = (PSYSTEM_PROCESS_INFORMATION)MmpQuerySystemInformation(SYSTEM_INFORMATION_CLASS::SystemProcessInformation, nullptr);
+    PSYSTEM_PROCESS_INFORMATION pspi = (PSYSTEM_PROCESS_INFORMATION)MmpQuerySystemInformation(SYSTEM_INFORMATION_CLASS::SystemProcessInformation, NULL);
     PSYSTEM_PROCESS_INFORMATION current = pspi;
     std::set<HANDLE>threads;
     int count = 0;
@@ -431,12 +431,12 @@ int MmpSyncThreadTlsData() {
                 if (threads.find(cid.UniqueThread) == threads.end()) {
 
                     HANDLE hThread;
-                    OBJECT_ATTRIBUTES oa{};
+                    OBJECT_ATTRIBUTES oa; memset(&oa, 0, sizeof(oa));
                     NTSTATUS status = NtOpenThread(&hThread, THREAD_QUERY_INFORMATION, &oa, &cid);
                     if (NT_SUCCESS(status)) {
 
-                        THREAD_BASIC_INFORMATION tbi{};
-                        status = NtQueryInformationThread(hThread, THREADINFOCLASS::ThreadBasicInformation, &tbi, sizeof(tbi), nullptr);
+                        THREAD_BASIC_INFORMATION tbi; memset(&tbi, 0, sizeof(tbi));
+                        status = NtQueryInformationThread(hThread, THREADINFOCLASS::ThreadBasicInformation, &tbi, sizeof(tbi), NULL);
                         if (NT_SUCCESS(status)) {
 
                             PTEB teb = tbi.TebBaseAddress;
@@ -446,7 +446,7 @@ int MmpSyncThreadTlsData() {
                                 // Allocate TLS record
                                 //
 
-                                auto record = PMMP_TLSP_RECORD(RtlAllocateHeap(RtlProcessHeap(), 0, sizeof(MMP_TLSP_RECORD)));
+                                PMMP_TLSP_RECORD record = PMMP_TLSP_RECORD(RtlAllocateHeap(RtlProcessHeap(), 0, sizeof(MMP_TLSP_RECORD)));
                                 if (record) {
                                     record->TlspLdrBlock = (PVOID*)teb->ThreadLocalStoragePointer;
                                     record->TlspMmpBlock = (PVOID*)MmpAllocateTlsp();
@@ -454,7 +454,7 @@ int MmpSyncThreadTlsData() {
                                     if (record->TlspMmpBlock) {
                                         record->TlspMmpBlock = ((PTLS_VECTOR)record->TlspMmpBlock)->ModuleTlsData;
 
-                                        auto size = CONTAINING_RECORD(record->TlspLdrBlock, TLS_VECTOR, ModuleTlsData)->Length;
+                                        SIZE_T size = CONTAINING_RECORD(record->TlspLdrBlock, TLS_VECTOR, ModuleTlsData)->Length;
                                         if ((HANDLE)(ULONG_PTR)size != record->UniqueThread) {
                                             RtlCopyMemory(
                                                 record->TlspMmpBlock,
@@ -508,10 +508,10 @@ NTSTATUS NTAPI HookNtSetInformationProcess(
         );
     }
 
-    auto ProcessTlsInformation = PPROCESS_TLS_INFORMATION(ProcessInformation);
-    auto hProcess = ProcessHandle ? ProcessHandle : NtCurrentProcess();
-    auto TlsLength = ProcessInformationLength;
-    PPROCESS_TLS_INFORMATION Tls = nullptr;
+    PPROCESS_TLS_INFORMATION ProcessTlsInformation = PPROCESS_TLS_INFORMATION(ProcessInformation);
+    HANDLE hProcess = ProcessHandle ? ProcessHandle : NtCurrentProcess();
+    ULONG TlsLength = ProcessInformationLength;
+    PPROCESS_TLS_INFORMATION Tls = NULL;
     NTSTATUS status = STATUS_SUCCESS;
 
     //
@@ -669,7 +669,7 @@ NTSTATUS NTAPI MmpAllocateTlsEntry(
     _In_ PLDR_DATA_TABLE_ENTRY lpModuleEntry,
     _Out_ PULONG lpTlsIndex,
     _Out_ PTLS_ENTRY* lpTlsEntry) {
-    PTLS_ENTRY Entry = nullptr;
+    PTLS_ENTRY Entry = NULL;
     IMAGE_TLS_DIRECTORY TlsDirectory;
     ULONG Length = 0;
     NTSTATUS status;
@@ -685,7 +685,7 @@ NTSTATUS NTAPI MmpAllocateTlsEntry(
         *PULONG(TlsDirectory.AddressOfIndex) = 0;
 
         *lpTlsIndex = 0;
-        *lpTlsEntry = nullptr;
+        *lpTlsEntry = NULL;
     }
     __except (EXCEPTION_EXECUTE_HANDLER) {
         return GetExceptionCode();
@@ -729,8 +729,8 @@ NTSTATUS NTAPI MmpReleaseTlsEntry(_In_ PLDR_DATA_TABLE_ENTRY lpModuleEntry) {
     
     RtlAcquireSRWLockExclusive(&MmpGlobalDataPtr->MmpTls->MmpTlsListLock);
 
-    for (auto entry = MmpGlobalDataPtr->MmpTls->MmpTlsList.Flink; entry != &MmpGlobalDataPtr->MmpTls->MmpTlsList; entry = entry->Flink) {
-        auto p = CONTAINING_RECORD(entry, TLS_ENTRY, TlsEntryLinks);
+    for (PLIST_ENTRY entry = MmpGlobalDataPtr->MmpTls->MmpTlsList.Flink; entry != &MmpGlobalDataPtr->MmpTls->MmpTlsList; entry = entry->Flink) {
+        PMMP_TLSP_RECORD p = CONTAINING_RECORD(entry, TLS_ENTRY, TlsEntryLinks);
         if (p->ModuleEntry == lpModuleEntry) {
             RemoveEntryList(&p->TlsEntryLinks);
             RtlClearBit(&MmpGlobalDataPtr->MmpTls->MmpTlsBitmap, p->TlsDirectory.Characteristics);
@@ -773,10 +773,10 @@ NTSTATUS NTAPI MmpHandleTlsData(_In_ PLDR_DATA_TABLE_ENTRY lpModuleEntry) {
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
-    auto ThreadCount = MmpGlobalDataPtr->MmpTls->MmpActiveThreadCount;
-    auto success = true;
-    auto Length = sizeof(PROCESS_TLS_INFORMATION) + (ThreadCount - 1) * sizeof(THREAD_TLS_INFORMATION);
-    auto ProcessTlsInformation = PPROCESS_TLS_INFORMATION(RtlAllocateHeap(RtlProcessHeap(), HEAP_ZERO_MEMORY, Length));
+    DWORD ThreadCount = MmpGlobalDataPtr->MmpTls->MmpActiveThreadCount;
+    bool success = true;
+    SIZE_T Length = sizeof(PROCESS_TLS_INFORMATION) + (ThreadCount - 1) * sizeof(THREAD_TLS_INFORMATION);
+    PPROCESS_TLS_INFORMATION ProcessTlsInformation = PPROCESS_TLS_INFORMATION(RtlAllocateHeap(RtlProcessHeap(), HEAP_ZERO_MEMORY, Length));
     if (!ProcessTlsInformation) {
         MmpReleaseTlsEntry(lpModuleEntry);
         return STATUS_NO_MEMORY;
@@ -816,7 +816,7 @@ NTSTATUS NTAPI MmpHandleTlsData(_In_ PLDR_DATA_TABLE_ENTRY lpModuleEntry) {
     }
 
     status = HookNtSetInformationProcess(
-        nullptr,                        // hack
+        NULL,                        // hack
         PROCESSINFOCLASS::ProcessTlsInformation,
         ProcessTlsInformation,
         (ULONG)Length
@@ -844,7 +844,7 @@ NTSTATUS NTAPI MmpHandleTlsData(_In_ PLDR_DATA_TABLE_ENTRY lpModuleEntry) {
 
 BOOL NTAPI MmpTlsInitialize() {
 
-    auto tls = CONTAINING_RECORD(NtCurrentTeb()->ThreadLocalStoragePointer, TLS_VECTOR, TLS_VECTOR::ModuleTlsData);
+    PTLS_VECTOR tls = CONTAINING_RECORD(NtCurrentTeb()->ThreadLocalStoragePointer, TLS_VECTOR, TLS_VECTOR::ModuleTlsData);
     if (tls && (HANDLE)(ULONG_PTR)tls->Length != NtCurrentThreadId() && tls->Length > MMP_START_TLS_INDEX) {
         RtlRaiseStatus(STATUS_NOT_SUPPORTED);
         return FALSE;
@@ -886,7 +886,7 @@ BOOL NTAPI MmpTlsInitialize() {
 
     MmpGlobalDataPtr->MmpTls->Hooks.OriginLdrShutdownThread = LdrShutdownThread;
     MmpGlobalDataPtr->MmpTls->Hooks.OriginNtSetInformationProcess = NtSetInformationProcess;
-    MmpGlobalDataPtr->MmpTls->Hooks.OriginRtlUserThreadStart = (decltype(&RtlUserThreadStart))GetProcAddress((HMODULE)MmpGlobalDataPtr->MmpBaseAddressIndex->NtdllLdrEntry->DllBase, "RtlUserThreadStart");
+    MmpGlobalDataPtr->MmpTls->Hooks.OriginRtlUserThreadStart = (PRTL_USER_THREAD_START)GetProcAddress((HMODULE)MmpGlobalDataPtr->MmpBaseAddressIndex->NtdllLdrEntry->DllBase, "RtlUserThreadStart");
 
     DetourTransactionBegin();
     DetourUpdateThread(NtCurrentThread());
