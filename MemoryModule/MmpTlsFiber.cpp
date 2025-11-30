@@ -29,7 +29,7 @@ DWORD WINAPI MmpReleasePostponedTlsWorker(PVOID) {
 		EnterCriticalSection(&MmpPostponedTlsLock);
 
 		if (MmpPostponedTlsList) {
-			auto iter = MmpPostponedTlsList->begin();
+			std::set<MMP_POSTPONED_TLS_ENTRY>::iterator iter = MmpPostponedTlsList->begin();
 
 			while (iter != MmpPostponedTlsList->end()) {
 				GetExitCodeThread(iter->hThread, &code);
@@ -41,11 +41,11 @@ DWORD WINAPI MmpReleasePostponedTlsWorker(PVOID) {
 
 					RtlAcquireSRWLockExclusive(&MmpGlobalDataPtr->MmpTls->MmpTlsListLock);
 
-					auto TlspMmpBlock = (PVOID*)iter->lpOldTlsVector->ModuleTlsData;
-					auto entry = MmpGlobalDataPtr->MmpTls->MmpTlsList.Flink;
+					PVOID* TlspMmpBlock = (PVOID*)iter->lpOldTlsVector->ModuleTlsData;
+					PLIST_ENTRY entry = MmpGlobalDataPtr->MmpTls->MmpTlsList.Flink;
 					while (entry != &MmpGlobalDataPtr->MmpTls->MmpTlsList) {
 
-						auto p = CONTAINING_RECORD(entry, TLS_ENTRY, TlsEntryLinks);
+						PTLS_ENTRY p = CONTAINING_RECORD(entry, TLS_ENTRY, TlsEntryLinks);
 						RtlFreeHeap(RtlProcessHeap(), 0, TlspMmpBlock[p->TlsDirectory.Characteristics]);
 
 						entry = entry->Flink;

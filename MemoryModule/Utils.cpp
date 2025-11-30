@@ -164,12 +164,14 @@ BOOL NTAPI LdrpCallInitializers(PMEMORYMODULE module, DWORD dwReason) {
 	return TRUE;
 }
 
+typedef SIZE_T (NTAPI *PFN_RtlCompareMemory)(const VOID*, const VOID*, SIZE_T);
+
 #ifndef _WIN64
 SIZE_T NTAPI _RtlCompareMemory(
 	const VOID* Source1,
 	const VOID* Source2,
 	SIZE_T     Length) {
-	return decltype(&_RtlCompareMemory)(GetProcAddress((HMODULE)MmpGlobalDataPtr->MmpBaseAddressIndex->NtdllLdrEntry->DllBase, "RtlCompareMemory"))(Source1, Source2, Length);
+	return ((PFN_RtlCompareMemory)(GetProcAddress((HMODULE)MmpGlobalDataPtr->MmpBaseAddressIndex->NtdllLdrEntry->DllBase, "RtlCompareMemory")))(Source1, Source2, Length);
 }
 #define RtlCompareMemory _RtlCompareMemory
 #endif
@@ -356,8 +358,9 @@ BOOLEAN NTAPI RtlIsValidImageBuffer(
 
 BOOLEAN NTAPI VirtualAccessCheckNoException(LPCVOID pBuffer, size_t size, ACCESS_MASK protect) {
 	if (size) {
-		MEMORY_BASIC_INFORMATION mbi{};
+		MEMORY_BASIC_INFORMATION mbi;
 		SIZE_T len = 0;
+		memset(&mbi, 0, sizeof(mbi));
 		if (!NT_SUCCESS(NtQueryVirtualMemory(NtCurrentProcess(), const_cast<PVOID>(pBuffer), MemoryBasicInformation, &mbi, sizeof(mbi), &len)) ||
 			!(mbi.Protect & protect)) {
 			return FALSE;
@@ -424,7 +427,7 @@ int NTAPI RtlCaptureImageExceptionValues(PVOID BaseAddress, PDWORD SEHandlerTabl
 	}
 
 	//get seh table and count
-	pLoadConfigDirectory = (decltype(pLoadConfigDirectory))RtlImageDirectoryEntryToData(BaseAddress, TRUE, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, &Size);
+	pLoadConfigDirectory = (PIMAGE_LOAD_CONFIG_DIRECTORY32)RtlImageDirectoryEntryToData(BaseAddress, TRUE, IMAGE_DIRECTORY_ENTRY_LOAD_CONFIG, &Size);
 	if (pLoadConfigDirectory) {
 		if (Size == 0x40 && pLoadConfigDirectory->Size >= 0x48u) {
 			if (pLoadConfigDirectory->SEHandlerTable && pLoadConfigDirectory->SEHandlerCount) {
@@ -435,7 +438,7 @@ int NTAPI RtlCaptureImageExceptionValues(PVOID BaseAddress, PDWORD SEHandlerTabl
 	}
 
 	//is .net core ?
-	pCor20 = (decltype(pCor20))RtlImageDirectoryEntryToData(BaseAddress, TRUE, IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR, &Size);
+	pCor20 = (PIMAGE_COR20_HEADER)RtlImageDirectoryEntryToData(BaseAddress, TRUE, IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR, &Size);
 	*SEHandlerTable = *SEHandlerCount = ((pCor20 && pCor20->Flags & 1) ? -1 : 0);
 	return 0;
 }

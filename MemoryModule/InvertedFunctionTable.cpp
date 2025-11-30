@@ -27,7 +27,7 @@ static VOID RtlpInsertInvertedFunctionTable(
 			}
 		}
 
-		FunctionTable = (decltype(FunctionTable))RtlImageDirectoryEntryToData(ImageBase, TRUE, IMAGE_DIRECTORY_ENTRY_EXCEPTION, &SizeOfTable);
+		FunctionTable = (PIMAGE_RUNTIME_FUNCTION_ENTRY)RtlImageDirectoryEntryToData(ImageBase, TRUE, IMAGE_DIRECTORY_ENTRY_EXCEPTION, &SizeOfTable);
 		InvertedTable->Entries[Index].ExceptionDirectory = FunctionTable;
 		InvertedTable->Entries[Index].ImageBase = ImageBase;
 		InvertedTable->Entries[Index].ImageSize = SizeOfImage;
@@ -70,7 +70,7 @@ static VOID RtlpInsertInvertedFunctionTable(
 	RtlCaptureImageExceptionValues(ImageBase, &ptr, &count);
 	if (IsWin8OrGreater) {
 		//memory layout is same as x64
-		PRTL_INVERTED_FUNCTION_TABLE_ENTRY_64 entry = (decltype(entry))&InvertedTable->Entries[Index];
+		PRTL_INVERTED_FUNCTION_TABLE_ENTRY_64 entry = (PRTL_INVERTED_FUNCTION_TABLE_ENTRY_64)&InvertedTable->Entries[Index];
 		entry->ExceptionDirectory = (PIMAGE_RUNTIME_FUNCTION_ENTRY)RtlEncodeSystemPointer((PVOID)ptr);
 		entry->ExceptionDirectorySize = count;
 		entry->ImageBase = ImageBase;
@@ -148,9 +148,10 @@ static NTSTATUS RtlProtectMrdata(_In_ ULONG Protect) {
 	PVOID tmp;
 	SIZE_T tmp_len;
 	ULONG old;
+	MEMORY_BASIC_INFORMATION mbi;
 
 	if (!MrdataBase) {
-		MEMORY_BASIC_INFORMATION mbi{};
+		memset(&mbi, 0, sizeof(mbi));
 		status = NtQueryVirtualMemory(GetCurrentProcess(), MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable, MemoryBasicInformation, &mbi, sizeof(mbi), NULL);
 		if (!NT_SUCCESS(status))return status;
 		MrdataBase = mbi.BaseAddress;
@@ -165,7 +166,7 @@ static NTSTATUS RtlProtectMrdata(_In_ ULONG Protect) {
 NTSTATUS NTAPI RtlInsertInvertedFunctionTable(
 	_In_ PVOID BaseAddress,
 	_In_ ULONG ImageSize) {
-	auto table = PRTL_INVERTED_FUNCTION_TABLE(MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable);
+	PRTL_INVERTED_FUNCTION_TABLE table = PRTL_INVERTED_FUNCTION_TABLE(MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable);
 	if (!table)return STATUS_NOT_SUPPORTED;
 	bool need_virtual_protect = RtlIsWindowsVersionOrGreater(6, 3, 0);
 	NTSTATUS status;
@@ -184,7 +185,7 @@ NTSTATUS NTAPI RtlInsertInvertedFunctionTable(
 }
 
 NTSTATUS NTAPI RtlRemoveInvertedFunctionTable(_In_ PVOID ImageBase) {
-	auto table = PRTL_INVERTED_FUNCTION_TABLE(MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable);
+	PRTL_INVERTED_FUNCTION_TABLE table = PRTL_INVERTED_FUNCTION_TABLE(MmpGlobalDataPtr->MmpInvertedFunctionTable->LdrpInvertedFunctionTable);
 	bool need_virtual_protect = RtlIsWindowsVersionOrGreater(6, 3, 0);
 	NTSTATUS status;
 

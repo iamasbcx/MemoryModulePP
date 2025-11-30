@@ -42,7 +42,7 @@ VOID MemoryFreeImportTable(_In_ PMEMORYMODULE hMemoryModule) {
 
 	PMMP_IAT_HANDLE list = (PMMP_IAT_HANDLE)hMemoryModule->hModulesList;
 	for (DWORD i = 0; i < hMemoryModule->dwModulesCount; ++i) {
-		auto entry = list[i];
+		MMP_IAT_HANDLE entry = list[i];
 		entry.lpResolver->FreeLibraryProv(entry.hModule);
 		--entry.lpResolver->ReferenceCount;
 	}

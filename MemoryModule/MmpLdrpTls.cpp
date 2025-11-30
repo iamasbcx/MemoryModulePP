@@ -110,7 +110,8 @@ static NTSTATUS NTAPI RtlFindLdrpHandleTlsData10() {
 		BYTE Bytes[4];
 		DWORD Dword;
 	};
-	Converter ExceptionBlockAddress{}; // { .Dword = DWORD(ExceptionBlock - LPBYTE(DllBase)) };
+	Converter ExceptionBlockAddress;
+	memset(&ExceptionBlockAddress, 0, sizeof(ExceptionBlockAddress));
 	ExceptionBlockAddress.Dword = DWORD(ExceptionBlock - LPBYTE(DllBase));
 
 	SearchContext.Result = NULL;
